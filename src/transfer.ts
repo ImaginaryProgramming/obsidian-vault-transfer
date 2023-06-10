@@ -1,6 +1,6 @@
 import * as fs from 'fs';
-import { VaultTransferSettings } from 'main';
-import { App, Editor, MarkdownView, Notice } from 'obsidian';
+import { App, Editor, FileSystemAdapter, MarkdownView } from 'obsidian';
+import { VaultTransferSettings } from 'settings';
 import { showNotice } from 'utils';
 
 export function transferNote(editor: Editor, view: MarkdownView, app: App, settings: VaultTransferSettings) {
@@ -15,7 +15,8 @@ export function transferNote(editor: Editor, view: MarkdownView, app: App, setti
         const outputFolder = cleanPath(settings.outputFolder);
 
         // Get paths
-        const thisVaultPath = (app.vault.adapter as any).basePath;
+        const fileSystemAdapter = app.vault.adapter as FileSystemAdapter;
+        const thisVaultPath = fileSystemAdapter.getBasePath();
         const fileName = view.file.name;
         const displayName = view.file.basename;
         const outputFolderPath = `${outputVault}/${outputFolder}`;
