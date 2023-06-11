@@ -9,8 +9,8 @@ import { showNotice } from 'utils';
 export function transferNote(editor: Editor, view: MarkdownView, app: App, settings: VaultTransferSettings) {
     try {
         // Check settings
-        const didSettingsError = showErrorIfSettingsInvalid(settings);
-        if (didSettingsError) {
+        const settingsErrorShown = showErrorIfSettingsInvalid(settings);
+        if (settingsErrorShown) {
             return;
         }
 
@@ -55,8 +55,9 @@ export function transferNote(editor: Editor, view: MarkdownView, app: App, setti
  * Inserts a link at the cursor to the current file in another vault.
  */
 export function insertLinkToOtherVault(editor: Editor, view: MarkdownView, settings: VaultTransferSettings) {
-    const didSettingsError = showErrorIfSettingsInvalid(settings);
-    if (didSettingsError) {
+    // Check settings
+    const settingsErrorShown = showErrorIfSettingsInvalid(settings);
+    if (settingsErrorShown) {
         return;
     }
 
@@ -64,7 +65,7 @@ export function insertLinkToOtherVault(editor: Editor, view: MarkdownView, setti
     const fileDisplayName = view.file.basename;
 
     // Get output vault
-    const outputVault = cleanPath(settings.outputVault);
+    const outputVault = settings.outputVault;
 
     // Insert link to file
     const link = createVaultFileLink(fileDisplayName, outputVault);
@@ -76,7 +77,7 @@ export function insertLinkToOtherVault(editor: Editor, view: MarkdownView, setti
  */
 function createVaultFileLink(fileDisplayName: string, outputVault: string): string {
     // Get content for link
-    const vaultPathArray = outputVault.split("/");
+    const vaultPathArray = cleanPath(outputVault).split("/");
     const vaultName = vaultPathArray[vaultPathArray.length - 1];
     const urlOtherVault = encodeURI(vaultName);
     const urlFile = encodeURI(fileDisplayName);
@@ -105,6 +106,9 @@ function showErrorIfSettingsInvalid(settings: VaultTransferSettings): boolean {
     return false;
 }
 
+/**
+ * Improves consistency of slashes in a path.
+ */
 function cleanPath(path: string): string {
     return path.trim()
         // Replace '\' with '/'
