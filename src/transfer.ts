@@ -4,7 +4,7 @@ import { VaultTransferSettings } from 'settings';
 import { showNotice } from 'utils';
 
 /**
- * Copies the content of the current note to another vault, then inserts a link to the new file.
+ * Copies the content of the current note to another vault, then replaces existing note contents with a link to the new file.
  */
 export function transferNote(editor: Editor, view: MarkdownView, app: App, settings: VaultTransferSettings) {
     try {
@@ -86,7 +86,7 @@ function createVaultFileLink(fileDisplayName: string, outputVault: string): stri
 }
 
 /**
- * Ensures necessary info has been set in plugin settings.
+ * Ensures necessary info has been set in plugin settings, otherwise displays an error notice.
  * @returns True if an error was shown, otherwise false.
  */
 function showErrorIfSettingsInvalid(settings: VaultTransferSettings): boolean {
