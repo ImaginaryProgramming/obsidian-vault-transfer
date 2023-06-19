@@ -92,7 +92,7 @@ function createVaultFileLink(fileDisplayName: string, outputVault: string): stri
  * @returns True if an error was shown, otherwise false.
  */
 function showErrorIfSettingsInvalid(settings: VaultTransferSettings): boolean {
-    var message: string | null = null;
+    let message: string | null = null;
 
     // Check settings
     if (settings.outputVault.trim().length == 0) {
