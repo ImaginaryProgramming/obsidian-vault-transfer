@@ -32,11 +32,14 @@ export function transferNote(editor: Editor, view: MarkdownView, app: App, setti
             return;
         }
 
-        // Check if file exists, so we don't overwrite anything
-        const fileExists = fs.existsSync(outputPath);
-        if (fileExists) {
+        if (fs.existsSync(outputPath)) {
+            if (settings.overwrite) {
+                fs.unlinkSync(outputPath);
+            }
+            else {
             showNotice("Error: File already exists");
             return;
+        }
         }
 
         //get list of all attachments
@@ -44,9 +47,14 @@ export function transferNote(editor: Editor, view: MarkdownView, app: App, setti
         // Copy to new file in other vault
         fs.copyFileSync(`${thisVaultPath}/${view.file.path}`, outputPath);
 
+        if (settings.createLink) {
         // Replace original file with link
         const link = createVaultFileLink(fileDisplayName, outputVault);
         editor.setValue(link);
+        } else if (settings.deleteOriginal) {
+            // Delete original file
+            app.vault.trash(view.file, settings.moveToSystemTrash);
+        }
     }
     catch (e) {
         showNotice(`Error copying file: ${e}`);
