@@ -27,6 +27,11 @@ export function addCommands(plugin: VaultTransferPlugin) {
     });
 }
 
+/**
+ * Add a command under the file menu to transfer the current file or folder to another vault.
+ * If a folder is selected, all files in the folder will be transferred.
+ * @param plugin {VaultTransferPlugin} The plugin instance
+ */
 export function addMenuCommands(plugin: VaultTransferPlugin) {
     plugin.registerEvent(
       plugin.app.workspace.on("file-menu", (menu, file) => {

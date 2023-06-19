@@ -70,6 +70,11 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
     }
 }
 
+/**
+ * Generate a list of all files in a folder (including subfolders)
+ * @param file {TFolder} The folder to get files from
+ * @returns {TFile[]} A list of all TFiles files in the folder
+ */
 function listToTransfer(file: TFolder) {
     const files = file.children;
     const filesToTransfer:TFile[] = [];
@@ -84,7 +89,12 @@ function listToTransfer(file: TFolder) {
     return filesToTransfer;
 }
 
-
+/**
+ * Transfer a folder and all its contents to another vault
+ * @param folder {TFolder} The folder to transfer
+ * @param app {App} Obsidian app
+ * @param settings {VaultTransferSettings} Plugin settings
+ */
 export function transferFolder(folder: TFolder, app: App, settings: VaultTransferSettings) {
     const files = listToTransfer(folder);
     for (const file of files) {
@@ -169,6 +179,13 @@ function cleanPath(path: string): string {
         .replace(/\/$/, "");
 }
 
+/**
+ * Copy all attachments of a file to a new vault -- Respecting the folder structure of the attachments
+ * @param file {TFile} The file to copy the attachments from
+ * @param app {App} Obsidian app
+ * @param newVault {string} The path of the new vault, where the attachments should be copied to. 
+ * @param thisVaultPath {string} The path of the current vault, where the attachments are located.
+ */
 function copyAllAttachments(file: TFile, app: App, newVault: string, thisVaultPath: string) {
     //Get all attachments of the file, aka embedded things (pdf, image...)
     const attachments = app.metadataCache.getFileCache(file)?.embeds ?? [];
