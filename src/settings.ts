@@ -8,6 +8,7 @@ export interface VaultTransferSettings {
     deleteOriginal: boolean; //only relevant if createLink is false
     moveToSystemTrash: boolean; //only relevant if deleteOriginal is true
     overwrite: boolean; //if set to false => skip file if it already exists
+    recreateTree: boolean; //if set to true => recreate the folder structure in the new vault
 }
 
 export const DEFAULT_SETTINGS: VaultTransferSettings = {
@@ -16,7 +17,8 @@ export const DEFAULT_SETTINGS: VaultTransferSettings = {
     createLink: true,
     deleteOriginal: false,
     moveToSystemTrash: false,
-    overwrite: false
+    overwrite: false,
+    recreateTree: false
 }
 
 export class SettingTab extends PluginSettingTab {
@@ -56,6 +58,16 @@ export class SettingTab extends PluginSettingTab {
                     this.plugin.settings.outputFolder = normalizePath(value);
                     await this.plugin.saveSettings();
                 }));
+        new Setting(containerEl)
+            .setName('Recreate Folder Structure')
+            .setDesc('If set to true, the folder structure of the original file will be recreated in the new vault.')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.recreateTree)
+                .onChange(async (value) => {
+                    this.plugin.settings.recreateTree = value;
+                    await this.plugin.saveSettings();
+                }
+            ));
         
         new Setting(containerEl)
             .setName('Create Link')

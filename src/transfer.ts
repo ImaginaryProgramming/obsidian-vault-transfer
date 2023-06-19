@@ -1,12 +1,12 @@
 import * as fs from 'fs';
-import { App, Editor, FileSystemAdapter, MarkdownView, TFile, normalizePath } from 'obsidian';
+import { App, Editor, FileSystemAdapter, MarkdownView, TFile, TFolder, normalizePath } from 'obsidian';
 import { VaultTransferSettings } from 'settings';
 import { showNotice } from 'utils';
 
 /**
  * Copies the content of the current note to another vault, then replaces existing note contents with a link to the new file.
  */
-export function transferNote(editor: Editor, view: MarkdownView, app: App, settings: VaultTransferSettings) {
+export async function transferNote(editor: Editor | null, file: TFile, app: App, settings: VaultTransferSettings, recursive?: boolean) {
     try {
         // Check settings
         const settingsErrorShown = showErrorIfSettingsInvalid(settings);
@@ -20,16 +20,23 @@ export function transferNote(editor: Editor, view: MarkdownView, app: App, setti
         // Get paths
         const fileSystemAdapter = app.vault.adapter as FileSystemAdapter;
         const thisVaultPath = fileSystemAdapter.getBasePath();
-        const fileName = view.file.name;
-        const fileDisplayName = view.file.basename;
+        const fileName = file.name;
+        const fileDisplayName = file.basename;
         const outputFolderPath = `${outputVault}/${outputFolder}`;
-        const outputPath = `${outputFolderPath}/${fileName}`;
+        let outputPath = normalizePath(`${outputFolderPath}/${fileName}`);
+        if (settings.recreateTree) {
+            outputPath = normalizePath(`${outputFolderPath}/${file.path}`);
+        }
+        showNotice(`Copying ${file.path} to ${outputPath}`);
 
         // Check if directory exists to avoid error when copying
         const folderExists = fs.existsSync(outputFolderPath);
         if (!folderExists) {
             showNotice(`Error: Directory does not exist at ${outputFolderPath}`);
             return;
+        } else if (settings.recreateTree) {
+            // create folder if it doesn't exist
+            fs.mkdirSync(normalizePath(outputPath.replace(fileName, "")), { recursive: true });
         }
 
         if (fs.existsSync(outputPath)) {
@@ -43,21 +50,49 @@ export function transferNote(editor: Editor, view: MarkdownView, app: App, setti
         }
 
         //get list of all attachments
-        copyAllAttachments(view.file, app, outputPath, thisVaultPath);
+        copyAllAttachments(file, app, outputPath, thisVaultPath);
         // Copy to new file in other vault
-        fs.copyFileSync(`${thisVaultPath}/${view.file.path}`, outputPath);
+        console.log(normalizePath(`${thisVaultPath}/${file.path}`));
+        fs.copyFileSync(normalizePath(`${thisVaultPath}/${file.path}`), outputPath);
 
         if (settings.createLink) {
         // Replace original file with link
             const link = createVaultFileLink(fileDisplayName, outputVault);
-            editor.setValue(link);
-        } else if (settings.deleteOriginal) {
+            if (editor) editor.setValue(link);
+            else await app.vault.modify(file, link);
+        } else if (settings.deleteOriginal && !recursive) {
             // Delete original file
-            app.vault.trash(view.file, settings.moveToSystemTrash);
+            app.vault.trash(file, settings.moveToSystemTrash);
         }
     }
     catch (e) {
         showNotice(`Error copying file`, e);
+    }
+}
+
+function listToTransfer(file: TFolder) {
+    const files = file.children;
+    const filesToTransfer:TFile[] = [];
+    //recursive function to get all files in folder
+    for (const file of files) {
+        if (file instanceof TFile) {
+            filesToTransfer.push(file as TFile);
+        } else {
+            filesToTransfer.push(...listToTransfer(file as TFolder));
+        }
+    }
+    return filesToTransfer;
+}
+
+
+export function transferFolder(folder: TFolder, app: App, settings: VaultTransferSettings) {
+    const files = listToTransfer(folder);
+    for (const file of files) {
+        transferNote(null, file, app, settings, true);
+        //delete folder after all files are transferred
+        if (settings.deleteOriginal && !settings.createLink) {
+            app.vault.trash(folder, settings.moveToSystemTrash);
+        }
     }
 }
 

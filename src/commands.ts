@@ -1,6 +1,6 @@
-import { Editor, MarkdownView } from 'obsidian';
+import { Editor, MarkdownView, TFile, TFolder } from 'obsidian';
 import VaultTransferPlugin from 'main';
-import { insertLinkToOtherVault, transferNote } from 'transfer';
+import { insertLinkToOtherVault, transferFolder, transferNote } from 'transfer';
 
 export function addCommands(plugin: VaultTransferPlugin) {
     /**
@@ -11,7 +11,7 @@ export function addCommands(plugin: VaultTransferPlugin) {
         id: 'transfer-note-to-vault',
         name: 'Transfer current note to other vault',
         editorCallback: (editor: Editor, view: MarkdownView) => {
-            transferNote(editor, view, plugin.app, plugin.settings);
+            transferNote(editor, view.file, plugin.app, plugin.settings);
         }
     });
 
@@ -25,4 +25,23 @@ export function addCommands(plugin: VaultTransferPlugin) {
             insertLinkToOtherVault(editor, view, plugin.settings);
         }
     });
+}
+
+export function addMenuCommands(plugin: VaultTransferPlugin) {
+    plugin.registerEvent(
+      plugin.app.workspace.on("file-menu", (menu, file) => {
+        menu.addItem((item) => {
+          item
+            .setTitle("Transfer to other vault")
+            .setIcon("arrow-right-circle")
+            .onClick(async () => {
+              if (file instanceof TFolder) {
+                transferFolder(file, plugin.app, plugin.settings)
+              } else if (file instanceof TFile) {
+                transferNote(null, file as TFile, plugin.app, plugin.settings);
+              }
+            });
+        });
+      })
+    );
 }
