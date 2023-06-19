@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { App, Editor, FileSystemAdapter, MarkdownView } from 'obsidian';
+import { App, Editor, FileSystemAdapter, MarkdownView, TFile, normalizePath } from 'obsidian';
 import { VaultTransferSettings } from 'settings';
 import { showNotice } from 'utils';
 
@@ -14,8 +14,8 @@ export function transferNote(editor: Editor, view: MarkdownView, app: App, setti
             return;
         }
 
-        const outputVault = cleanPath(settings.outputVault);
-        const outputFolder = cleanPath(settings.outputFolder);
+        const outputVault = normalizePath(settings.outputVault);
+        const outputFolder = normalizePath(settings.outputFolder);
 
         // Get paths
         const fileSystemAdapter = app.vault.adapter as FileSystemAdapter;
@@ -77,7 +77,7 @@ export function insertLinkToOtherVault(editor: Editor, view: MarkdownView, setti
  */
 function createVaultFileLink(fileDisplayName: string, outputVault: string): string {
     // Get content for link
-    const vaultPathArray = cleanPath(outputVault).split("/");
+    const vaultPathArray = normalizePath(outputVault).split("/");
     const vaultName = vaultPathArray[vaultPathArray.length - 1];
     const urlOtherVault = encodeURI(vaultName);
     const urlFile = encodeURI(fileDisplayName);
@@ -107,9 +107,13 @@ function showErrorIfSettingsInvalid(settings: VaultTransferSettings): boolean {
 }
 
 /**
+ * @deprecated The obsidian function "normalizePath" is now available, which does the same thing, in a more robust way.
  * Improves consistency of slashes in a path.
+ *
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function cleanPath(path: string): string {
+    //normalize path
     return path.trim()
         // Replace '\' with '/'
         .replaceAll("\\", "/")
