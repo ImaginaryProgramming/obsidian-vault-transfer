@@ -27,7 +27,7 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
         if (settings.recreateTree) {
             outputPath = normalizePath(`${outputFolderPath}/${file.path}`);
         }
-        showNotice(`Copying ${file.path} to ${outputPath}`);
+        if (!recursive) showNotice(`Copying ${file.path} to ${outputPath}`);
 
         // Check if directory exists to avoid error when copying
         const folderExists = fs.existsSync(outputFolderPath);
@@ -93,6 +93,7 @@ export function transferFolder(folder: TFolder, app: App, settings: VaultTransfe
         if (settings.deleteOriginal && !settings.createLink) {
             app.vault.trash(folder, settings.moveToSystemTrash);
         }
+        showNotice(`Finished copying ${file.path}`);
     }
 }
 
