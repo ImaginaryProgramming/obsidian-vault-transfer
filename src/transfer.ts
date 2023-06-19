@@ -39,6 +39,8 @@ export function transferNote(editor: Editor, view: MarkdownView, app: App, setti
             return;
         }
 
+        //get list of all attachments
+        copyAllAttachments(view.file, app, outputPath, thisVaultPath);
         // Copy to new file in other vault
         fs.copyFileSync(`${thisVaultPath}/${view.file.path}`, outputPath);
 
@@ -121,4 +123,25 @@ function cleanPath(path: string): string {
         .replace(/^\//, "")
         // Remove end '/'
         .replace(/\/$/, "");
+}
+
+function copyAllAttachments(file: TFile, app: App, newVault: string, thisVaultPath: string) {
+    //Get all attachments of the file, aka embedded things (pdf, image...)
+    const attachments = app.metadataCache.getFileCache(file)?.embeds ?? [];
+    for (const attachment of attachments) {
+        //copy the attachment to the new vault
+        const attachmentPath = app.metadataCache.getFirstLinkpathDest(attachment.link.replace(/#.*/, ""), file.path);
+        if (attachmentPath) {
+            //recreate the path of the attachment in the new vault
+            const newAttachmentPath = normalizePath(`${newVault.replace(file.name, "")}/${attachmentPath.path}`);
+            const oldAttachmentPath = normalizePath(`${thisVaultPath}/${attachmentPath.path}`);
+            //check if the folder exists, if not create it
+            if (!fs.existsSync(newAttachmentPath.replace(attachmentPath.name, ""))) {
+                //recursively create the folder
+                fs.mkdirSync(newAttachmentPath.replace(attachmentPath.name, ""), { recursive: true });
+            }
+            //copy the attachment
+            fs.copyFileSync(oldAttachmentPath, newAttachmentPath);
+        }
+    }
 }
