@@ -37,9 +37,9 @@ export function transferNote(editor: Editor, view: MarkdownView, app: App, setti
                 fs.unlinkSync(outputPath);
             }
             else {
-            showNotice("Error: File already exists");
-            return;
-        }
+                showNotice("Error: File already exists");
+                return;
+            }
         }
 
         //get list of all attachments
@@ -49,15 +49,15 @@ export function transferNote(editor: Editor, view: MarkdownView, app: App, setti
 
         if (settings.createLink) {
         // Replace original file with link
-        const link = createVaultFileLink(fileDisplayName, outputVault);
-        editor.setValue(link);
+            const link = createVaultFileLink(fileDisplayName, outputVault);
+            editor.setValue(link);
         } else if (settings.deleteOriginal) {
             // Delete original file
             app.vault.trash(view.file, settings.moveToSystemTrash);
         }
     }
     catch (e) {
-        showNotice(`Error copying file: ${e}`);
+        showNotice(`Error copying file`, e);
     }
 }
 
