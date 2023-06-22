@@ -1,6 +1,14 @@
-import { Editor, MarkdownView, TFile, TFolder } from 'obsidian';
+import { Editor, MarkdownView, Menu, TFile, TFolder } from 'obsidian';
 import VaultTransferPlugin from 'main';
 import { insertLinkToOtherVault, transferFolder, transferNote } from 'transfer';
+import {FolderSuggestModal} from 'modals';
+import * as fs from 'fs';
+import * as path from "path"
+
+export interface Folder {
+  absPath: string
+  relPath: string
+}
 
 export function addCommands(plugin: VaultTransferPlugin) {
     /**
@@ -37,16 +45,54 @@ export function addMenuCommands(plugin: VaultTransferPlugin) {
       plugin.app.workspace.on("file-menu", (menu, file) => {
         menu.addItem((item) => {
           item
-            .setTitle("Transfer to other vault")
+            .setTitle("Vault Transfer")
             .setIcon("arrow-right-circle")
-            .onClick(async () => {
+            //@ts-ignore
+            const submenu = item.setSubmenu() as Menu;
+            submenu.addItem((subitem) => {
+            subitem
+              .setTitle("Transfer using settings")
+              .setIcon("arrow-right-circle")
+              .onClick(async () => {
               if (file instanceof TFolder) {
                 transferFolder(file, plugin.app, plugin.settings)
               } else if (file instanceof TFile) {
                 transferNote(null, file as TFile, plugin.app, plugin.settings);
               }
+              });
+            submenu.addItem((subitem) => {
+              subitem
+                .setTitle("Transfert in selected folder...")
+                .setIcon("arrow-right-circle")
+                .onClick(async () => {
+                  //get all folder in the output vault
+                  const folders:Folder[] = fs.readdirSync(plugin.settings.outputVault)
+                    .filter((file) => fs.statSync(plugin.settings.outputVault + "/" + file).isDirectory())
+                    .filter((folder) => folder != ".obsidian")
+                    .map((folder) => {
+                      return {
+                        absPath: plugin.settings.outputVault + "/" + folder,
+                        relPath: folder
+                      }
+                    });
+                    
+                  folders.push({
+                    absPath: plugin.settings.outputVault,
+                    relPath: path.basename(plugin.settings.outputVault)
+                  })
+                  folders.push({
+                    absPath:"",
+                    relPath:"Create new folder"
+                  })
+                  new FolderSuggestModal(plugin, plugin.app, plugin.settings, folders, file).open();
+                });
             });
+          });
         });
       })
     );
+}
+
+export function addSubMenuCommands(plugin: VaultTransferPlugin) {
+  
 }

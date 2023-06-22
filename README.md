@@ -13,6 +13,10 @@ Transfers the contents of the selected note to another vault, then links to it f
 
 ![vault-transfer](https://user-images.githubusercontent.com/92801558/212498180-34ed6ddf-9800-4904-b5a8-209be067e992.gif)
 
+It is also possible to transfer multiple notes at once. In this case, the plugin will create a folder with the same name as the original folder, and transfer the notes inside it.
+
+You can also use the file-menu to transfer the folder or note, and you can also send to a specific folder in the target vault, or create a new folder in the target vault, and then transfer the note to it.
+
 ## Other commands
 
 **Insert link to current note in other vault**

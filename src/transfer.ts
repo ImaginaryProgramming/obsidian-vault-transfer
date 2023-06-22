@@ -2,11 +2,10 @@ import * as fs from 'fs';
 import { App, Editor, FileSystemAdapter, MarkdownView, TFile, TFolder, normalizePath } from 'obsidian';
 import { VaultTransferSettings } from 'settings';
 import { showNotice } from 'utils';
-
 /**
  * Copies the content of the current note to another vault, then replaces existing note contents with a link to the new file.
  */
-export async function transferNote(editor: Editor | null, file: TFile, app: App, settings: VaultTransferSettings, recursive?: boolean) {
+export async function transferNote(editor: Editor | null, file: TFile, app: App, settings: VaultTransferSettings, recursive?: boolean, outputPath?: string) {
     try {
         // Check settings
         const settingsErrorShown = showErrorIfSettingsInvalid(settings);
@@ -22,10 +21,16 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
         const thisVaultPath = fileSystemAdapter.getBasePath();
         const fileName = file.name;
         const fileDisplayName = file.basename;
-        const outputFolderPath = `${outputVault}/${outputFolder}`;
-        let outputPath = normalizePath(`${outputFolderPath}/${fileName}`);
-        if (settings.recreateTree) {
-            outputPath = normalizePath(`${outputFolderPath}/${file.path}`);
+        let outputFolderPath: string;
+        if (!outputPath) {
+            outputFolderPath = `${outputVault}/${outputFolder}`;
+            outputPath = normalizePath(`${outputFolderPath}/${fileName}`);
+            if (settings.recreateTree) {
+                outputPath = normalizePath(`${outputFolderPath}/${file.path}`);
+            }
+        } else {
+            outputFolderPath = normalizePath(outputPath);
+            outputPath = normalizePath(`${outputPath}/${fileName}`);
         }
         if (!recursive) showNotice(`Copying ${file.path} to ${outputPath}`);
 
@@ -52,7 +57,6 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
         //get list of all attachments
         copyAllAttachments(file, app, outputPath, thisVaultPath);
         // Copy to new file in other vault
-        console.log(normalizePath(`${thisVaultPath}/${file.path}`));
         fs.copyFileSync(normalizePath(`${thisVaultPath}/${file.path}`), outputPath);
 
         if (settings.createLink) {
@@ -95,10 +99,10 @@ function listToTransfer(file: TFolder) {
  * @param app {App} Obsidian app
  * @param settings {VaultTransferSettings} Plugin settings
  */
-export function transferFolder(folder: TFolder, app: App, settings: VaultTransferSettings) {
+export function transferFolder(folder: TFolder, app: App, settings: VaultTransferSettings, outputPath?: string) {
     const files = listToTransfer(folder);
     for (const file of files) {
-        transferNote(null, file, app, settings, true);
+        transferNote(null, file, app, settings, true, outputPath);
         //delete folder after all files are transferred
         if (settings.deleteOriginal && !settings.createLink) {
             app.vault.trash(folder, settings.moveToSystemTrash);
