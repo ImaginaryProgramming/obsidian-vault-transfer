@@ -34,8 +34,7 @@ export class SettingTab extends PluginSettingTab {
 
         containerEl.empty();
 
-        containerEl.createEl('h2', { text: 'Settings' });
-        containerEl.createEl('h3', { text: 'Path settings' });
+        containerEl.createEl('h2', { text: 'Path settings' });
 
         new Setting(containerEl)
             .setName('Output Vault')

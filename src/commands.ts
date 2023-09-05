@@ -51,7 +51,7 @@ export function addMenuCommands(plugin: VaultTransferPlugin) {
             const submenu = item.setSubmenu() as Menu;
             submenu.addItem((subitem) => {
             subitem
-              .setTitle("Transfer using settings")
+              .setTitle("Transfer")
               .setIcon("arrow-right-circle")
               .onClick(async () => {
               if (file instanceof TFolder) {
@@ -62,7 +62,7 @@ export function addMenuCommands(plugin: VaultTransferPlugin) {
               });
             submenu.addItem((subitem) => {
               subitem
-                .setTitle("Transfert in selected folder...")
+                .setTitle("Transfert to...")
                 .setIcon("arrow-right-circle")
                 .onClick(async () => {
                   //get all folder in the output vault
@@ -75,11 +75,12 @@ export function addMenuCommands(plugin: VaultTransferPlugin) {
                         relPath: folder
                       }
                     });
-                    
+                    //add an option to transfer to the vault root
                   folders.push({
                     absPath: plugin.settings.outputVault,
                     relPath: path.basename(plugin.settings.outputVault)
                   })
+                  //add an option to create a new folder
                   folders.push({
                     absPath:"",
                     relPath:"Create new folder"

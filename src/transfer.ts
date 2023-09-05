@@ -167,23 +167,6 @@ function showErrorIfSettingsInvalid(settings: VaultTransferSettings): boolean {
 }
 
 /**
- * @deprecated The obsidian function "normalizePath" is now available, which does the same thing, in a more robust way.
- * Improves consistency of slashes in a path.
- *
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function cleanPath(path: string): string {
-    //normalize path
-    return path.trim()
-        // Replace '\' with '/'
-        .replaceAll("\\", "/")
-        // Remove beginning '/'
-        .replace(/^\//, "")
-        // Remove end '/'
-        .replace(/\/$/, "");
-}
-
-/**
  * Copy all attachments of a file to a new vault -- Respecting the folder structure of the attachments
  * @param file {TFile} The file to copy the attachments from
  * @param app {App} Obsidian app
