@@ -9,6 +9,7 @@ export interface VaultTransferSettings {
     moveToSystemTrash: boolean; //only relevant if deleteOriginal is true
     overwrite: boolean; //if set to false => skip file if it already exists
     recreateTree: boolean; //if set to true => recreate the folder structure in the new vault
+    removePath: string[]; //allow to remove parts of the path, separate in the settings by space/comma
 }
 
 export const DEFAULT_SETTINGS: VaultTransferSettings = {
@@ -18,7 +19,8 @@ export const DEFAULT_SETTINGS: VaultTransferSettings = {
     deleteOriginal: false,
     moveToSystemTrash: false,
     overwrite: false,
-    recreateTree: false
+    recreateTree: false,
+    removePath: []
 }
 
 export class SettingTab extends PluginSettingTab {
@@ -64,9 +66,25 @@ export class SettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.recreateTree)
                 .onChange(async (value) => {
                     this.plugin.settings.recreateTree = value;
+                    this.display();
                     await this.plugin.saveSettings();
                 }
             ));
+        
+        if (this.plugin.settings.recreateTree) {
+            new Setting(containerEl)
+                .setName('Remove Path')
+                .setDesc('Remove parts of the path, separate in the settings by comma or new line.')
+                .addText(text => 
+                    text
+                        .setPlaceholder('00. ARCHIVES')
+                        .setValue(this.plugin.settings.removePath.join(' ,'))
+                        .onChange(async (value) => {
+                            this.plugin.settings.removePath = value.split(/[,\n]\W*/);
+                            await this.plugin.saveSettings();
+                        })
+                );
+        }
         
         new Setting(containerEl)
             .setName('Create Link')

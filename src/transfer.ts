@@ -2,6 +2,14 @@ import * as fs from 'fs';
 import { App, Editor, FileSystemAdapter, MarkdownView, TFile, TFolder, normalizePath } from 'obsidian';
 import { VaultTransferSettings } from 'settings';
 import { showNotice } from 'utils';
+
+function removePartOfPath(settings: VaultTransferSettings, path: string) {
+    for (const part of settings.removePath) {
+        path = path.replace(part, "");
+    }
+    return normalizePath(path);
+}
+
 /**
  * Copies the content of the current note to another vault, then replaces existing note contents with a link to the new file.
  */
@@ -27,6 +35,7 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
             outputPath = normalizePath(`${outputFolderPath}/${fileName}`);
             if (settings.recreateTree) {
                 outputPath = normalizePath(`${outputFolderPath}/${file.path}`);
+                outputPath = removePartOfPath(settings, outputPath);
             }
         } else {
             outputFolderPath = normalizePath(outputPath);
