@@ -3,7 +3,13 @@ import { App, Editor, FileSystemAdapter, MarkdownView, TFile, TFolder, normalize
 import { VaultTransferSettings } from 'settings';
 import { showNotice } from 'utils';
 
-function removePartOfPath(settings: VaultTransferSettings, path: string) {
+/**
+ * Simple function that remove a part of a path using the settings "removePath"
+ * @param settings {VaultTransferSettings} 
+ * @param path {string}
+ * @returns {string} The path without the parts to remove or the original path, depending on the settings
+ */
+function removePartOfPath(settings: VaultTransferSettings, path: string):string {
     for (const part of settings.removePath) {
         path = path.replace(part, "");
     }
