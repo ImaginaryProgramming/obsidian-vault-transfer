@@ -75,7 +75,7 @@ export class SettingTab extends PluginSettingTab {
             new Setting(containerEl)
                 .setName('Remove Path')
                 .setDesc('Remove parts of the path, separate in the settings by comma or new line.')
-                .addText(text => 
+                .addTextArea(text => 
                     text
                         .setPlaceholder('00. ARCHIVES')
                         .setValue(this.plugin.settings.removePath.join(' ,'))
