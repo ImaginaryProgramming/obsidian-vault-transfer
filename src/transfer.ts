@@ -11,7 +11,7 @@ import { showNotice } from 'utils';
  */
 function removePartOfPath(settings: VaultTransferSettings, path: string):string {
     for (const part of settings.removePath) {
-        path = path.replace(part, "");
+        path = path.replace(RegExp(part, "gi"), "");
     }
     return normalizePath(path);
 }
