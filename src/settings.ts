@@ -73,8 +73,8 @@ export class SettingTab extends PluginSettingTab {
         
         if (this.plugin.settings.recreateTree) {
             new Setting(containerEl)
-                .setName('Remove Path')
-                .setDesc('Remove parts of the path, separate in the settings by comma or new line.')
+                .setName('Remove Folders From Path')
+                .setDesc('Removes the specified folders from the output path, if present. Separate folders by using a comma or a new line. Names are case insensitive.')
                 .addTextArea(text => 
                     text
                         .setPlaceholder('00. ARCHIVES')
