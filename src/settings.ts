@@ -80,9 +80,8 @@ export class SettingTab extends PluginSettingTab {
                         .setPlaceholder('00. ARCHIVES')
                         .setValue(this.plugin.settings.removePath.join(' ,'))
                         .onChange(async (value) => {
-                            var rawPaths = value.split(/[,\n]/);
-
-                            var cleanPaths: string[] = [];
+                            const rawPaths = value.split(/[,\n]/);
+                            const cleanPaths: string[] = [];
                             // Remove empty strings, and clean up paths
                             for (const path of rawPaths) {
                                 const trimmedPath = path.trim();
