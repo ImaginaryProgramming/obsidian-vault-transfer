@@ -77,8 +77,8 @@ export class SettingTab extends PluginSettingTab {
                 .setDesc('Removes the specified folders from the output path, if present. Separate folders by using a comma or a new line. Names are case insensitive.')
                 .addTextArea(text => 
                     text
-                        .setPlaceholder('00. ARCHIVES')
-                        .setValue(this.plugin.settings.removePath.join(' ,'))
+                        .setPlaceholder('RemoveThisFolder, AndThis')
+                        .setValue(this.plugin.settings.removePath.join(', '))
                         .onChange(async (value) => {
                             const rawPaths = value.split(/[,\n]/);
                             const cleanPaths: string[] = [];
