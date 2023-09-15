@@ -2,6 +2,20 @@ import * as fs from 'fs';
 import { App, Editor, FileSystemAdapter, MarkdownView, TFile, TFolder, normalizePath } from 'obsidian';
 import { VaultTransferSettings } from 'settings';
 import { showNotice } from 'utils';
+
+/**
+ * Simple function that remove a part of a path using the settings "removePath"
+ * @param settings {VaultTransferSettings} 
+ * @param path {string}
+ * @returns {string} The path without the parts to remove or the original path, depending on the settings
+ */
+function removePartOfPath(settings: VaultTransferSettings, path: string):string {
+    for (const part of settings.removePath) {
+        path = path.replace(RegExp(part, "gi"), "");
+    }
+    return normalizePath(path);
+}
+
 /**
  * Copies the content of the current note to another vault, then replaces existing note contents with a link to the new file.
  */
@@ -27,6 +41,7 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
             outputPath = normalizePath(`${outputFolderPath}/${fileName}`);
             if (settings.recreateTree) {
                 outputPath = normalizePath(`${outputFolderPath}/${file.path}`);
+                outputPath = removePartOfPath(settings, outputPath);
             }
         } else {
             outputFolderPath = normalizePath(outputPath);

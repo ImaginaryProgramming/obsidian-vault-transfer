@@ -9,6 +9,7 @@ export interface VaultTransferSettings {
     moveToSystemTrash: boolean; //only relevant if deleteOriginal is true
     overwrite: boolean; //if set to false => skip file if it already exists
     recreateTree: boolean; //if set to true => recreate the folder structure in the new vault
+    removePath: string[]; //allow to remove parts of the path, separate in the settings by space/comma
 }
 
 export const DEFAULT_SETTINGS: VaultTransferSettings = {
@@ -18,7 +19,8 @@ export const DEFAULT_SETTINGS: VaultTransferSettings = {
     deleteOriginal: false,
     moveToSystemTrash: false,
     overwrite: false,
-    recreateTree: false
+    recreateTree: false,
+    removePath: []
 }
 
 export class SettingTab extends PluginSettingTab {
@@ -64,9 +66,36 @@ export class SettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.recreateTree)
                 .onChange(async (value) => {
                     this.plugin.settings.recreateTree = value;
+                    this.display();
                     await this.plugin.saveSettings();
                 }
             ));
+        
+        if (this.plugin.settings.recreateTree) {
+            new Setting(containerEl)
+                .setName('Remove Folders From Path')
+                .setDesc('Removes the specified folders from the output path, if present. Separate folders by using a comma or a new line. Names are case insensitive.')
+                .addTextArea(text => 
+                    text
+                        .setPlaceholder('RemoveThisFolder, AndThis')
+                        .setValue(this.plugin.settings.removePath.join(', '))
+                        .onChange(async (value) => {
+                            const rawPaths = value.split(/[,\n]/);
+                            const cleanPaths: string[] = [];
+                            // Remove empty strings, and clean up paths
+                            for (const path of rawPaths) {
+                                const trimmedPath = path.trim();
+                                if (trimmedPath == "") {
+                                    continue;
+                                }
+                                cleanPaths.push(normalizePath(trimmedPath));
+                            }
+
+                            this.plugin.settings.removePath = cleanPaths;
+                            await this.plugin.saveSettings();
+                        })
+                );
+        }
         
         new Setting(containerEl)
             .setName('Create Link')
