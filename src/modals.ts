@@ -12,7 +12,7 @@ export class FolderSuggestModal extends FuzzySuggestModal<Folder> {
     plugin: VaultTransferPlugin;
     settings: VaultTransferSettings;
     app: App;
-    toTransfer: TAbstractFile; 
+    toTransfer: TAbstractFile;
     foldersList: Folder[]
 
     constructor(plugin: VaultTransferPlugin, app: App, settings: VaultTransferSettings, folder: Folder[], toTransfer: TAbstractFile) {
@@ -74,21 +74,20 @@ class CreateFolder extends Modal {
                 .onChange(async (value) => {
                     this.folder.relPath = value;
                     this.folder.absPath = this.settings.outputVault + "/" + value;
-                }
-            ))
-        .addButton((button) => {
-            button
-                .setButtonText("Create folder")
-                .onClick(async () => {
-                    fs.mkdirSync(normalizePath(this.folder.absPath), { recursive: true });
-                    if (this.toTransfer instanceof TFolder) {
-                        transferFolder(this.toTransfer, this.app, this.settings, this.folder.absPath)
-                    } else if (this.toTransfer instanceof TFile) {
-                        transferNote(null, this.toTransfer as TFile, this.app, this.settings, undefined, this.folder.absPath);
-                    }
-                    this.close();
-                }
+                })
             )
-        })
+            .addButton((button) => {
+                button
+                    .setButtonText("Create folder")
+                    .onClick(async () => {
+                        fs.mkdirSync(normalizePath(this.folder.absPath), { recursive: true });
+                        if (this.toTransfer instanceof TFolder) {
+                            transferFolder(this.toTransfer, this.app, this.settings, this.folder.absPath)
+                        } else if (this.toTransfer instanceof TFile) {
+                            transferNote(null, this.toTransfer as TFile, this.app, this.settings, undefined, this.folder.absPath);
+                        }
+                        this.close();
+                    })
+            })
     }
 }

@@ -9,7 +9,7 @@ import { showNotice } from 'utils';
  * @param path {string}
  * @returns {string} The path without the parts to remove or the original path, depending on the settings
  */
-function removePartOfPath(settings: VaultTransferSettings, path: string):string {
+function removePartOfPath(settings: VaultTransferSettings, path: string): string {
     for (const part of settings.removePath) {
         path = path.replace(RegExp(part, "gi"), "");
     }
@@ -75,7 +75,7 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
         fs.copyFileSync(normalizePath(`${thisVaultPath}/${file.path}`), outputPath);
 
         if (settings.createLink) {
-        // Replace original file with link
+            // Replace original file with link
             const link = createVaultFileLink(fileDisplayName, outputVault);
             if (editor) editor.setValue(link);
             else await app.vault.modify(file, link);
@@ -96,7 +96,7 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
  */
 function listToTransfer(file: TFolder) {
     const files = file.children;
-    const filesToTransfer:TFile[] = [];
+    const filesToTransfer: TFile[] = [];
     //recursive function to get all files in folder
     for (const file of files) {
         if (file instanceof TFile) {

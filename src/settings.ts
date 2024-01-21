@@ -4,7 +4,7 @@ import { App, PluginSettingTab, Setting, normalizePath } from 'obsidian';
 export interface VaultTransferSettings {
     outputVault: string;
     outputFolder: string;
-    createLink: boolean; 
+    createLink: boolean;
     deleteOriginal: boolean; //only relevant if createLink is false
     moveToSystemTrash: boolean; //only relevant if deleteOriginal is true
     overwrite: boolean; //if set to false => skip file if it already exists
@@ -69,13 +69,13 @@ export class SettingTab extends PluginSettingTab {
                     this.display();
                     await this.plugin.saveSettings();
                 }
-            ));
-        
+                ));
+
         if (this.plugin.settings.recreateTree) {
             new Setting(containerEl)
                 .setName('Remove Folders From Path')
                 .setDesc('Removes the specified folders from the output path, if present. Separate folders by using a comma or a new line. Names are case insensitive.')
-                .addTextArea(text => 
+                .addTextArea(text =>
                     text
                         .setPlaceholder('RemoveThisFolder, AndThis')
                         .setValue(this.plugin.settings.removePath.join(', '))
@@ -96,7 +96,7 @@ export class SettingTab extends PluginSettingTab {
                         })
                 );
         }
-        
+
         new Setting(containerEl)
             .setName('Create Link')
             .setDesc('Add a link to the new file in the new vault to the current note. If set to false, the file will be left unchanged, but you can choose to delete the original with the setting below.')
@@ -107,7 +107,7 @@ export class SettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                     this.display();
                 }
-            ));
+                ));
         if (!this.plugin.settings.createLink) {
             containerEl.createEl('h3', { text: 'Deleting the original file settings' });
             new Setting(containerEl)
@@ -120,7 +120,7 @@ export class SettingTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                         this.display();
                     }
-                ));
+                    ));
             if (this.plugin.settings.deleteOriginal) {
                 new Setting(containerEl)
                     .setName('Move to System Trash')
@@ -131,8 +131,8 @@ export class SettingTab extends PluginSettingTab {
                             this.plugin.settings.moveToSystemTrash = value;
                             await this.plugin.saveSettings();
                         }
-                    ));
-                }
+                        ));
+            }
         }
 
         containerEl.createEl('h3', { text: 'Other Settings' });
@@ -145,6 +145,6 @@ export class SettingTab extends PluginSettingTab {
                     this.plugin.settings.overwrite = value;
                     await this.plugin.saveSettings();
                 }
-            ));
+                ));
     }
 }
