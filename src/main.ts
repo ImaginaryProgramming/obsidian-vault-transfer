@@ -1,4 +1,4 @@
-import { addCommands } from 'commands';
+import { addCommands, addMenuCommands } from 'commands';
 import { Plugin } from 'obsidian';
 import { DEFAULT_SETTINGS, SettingTab, VaultTransferSettings } from 'settings';
 
@@ -6,9 +6,11 @@ export default class VaultTransferPlugin extends Plugin {
 	settings: VaultTransferSettings;
 
 	async onload() {
+		console.log('loading obsidian-vault-transfer plugin');
 		await this.loadSettings();
 
 		addCommands(this);
+		addMenuCommands(this);
 
 		this.addSettingTab(new SettingTab(this.app, this));
 	}
@@ -19,5 +21,9 @@ export default class VaultTransferPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	onunload(): void {
+		console.log('unloading obsidian-vault-transfer plugin');
 	}
 }
