@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { App, Editor, FileSystemAdapter, MarkdownView, TFile, TFolder, normalizePath } from 'obsidian';
+import { App, Editor, FileSystemAdapter, MarkdownView, TFile, TFolder, normalizePath, moment } from 'obsidian';
 import { VaultTransferSettings } from 'settings';
 import { showNotice } from 'utils';
 
@@ -28,7 +28,15 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
         }
 
         const outputVault = normalizePath(settings.outputVault);
-        const outputFolder = normalizePath(settings.outputFolder);
+        let outputFolder = normalizePath(settings.outputFolder);
+        const DATE_REGEX = /\{\{(.*?)\}\}/gi;
+        outputFolder = outputFolder.replace(DATE_REGEX, (match: string, group: string) => {
+            const frontmatterDate = app.metadataCache.getFileCache(file)?.frontmatter?.date;
+            if (frontmatterDate) {
+                return moment(frontmatterDate).format(group);
+            }
+            return moment(file.stat.ctime).format(group);
+        });
 
         // Get paths
         const fileSystemAdapter = app.vault.adapter as FileSystemAdapter;

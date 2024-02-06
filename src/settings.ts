@@ -51,7 +51,7 @@ export class SettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Output Folder')
-            .setDesc('The folder within the vault the file should be copied to.')
+            .setDesc('The folder within the vault the file should be copied to. You can use a variable date using {{date-format}}, like {{YYYY-MM-DD}}.')
             .addText(text => text
                 .setPlaceholder('Unsorted/Transfer')
                 .setValue(this.plugin.settings.outputFolder)
