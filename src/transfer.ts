@@ -1,7 +1,7 @@
-import * as fs from 'fs';
-import { App, Editor, FileSystemAdapter, MarkdownView, TFile, TFolder, normalizePath, moment } from 'obsidian';
-import { VaultTransferSettings } from 'settings';
-import { showNotice } from 'utils';
+import * as fs from "fs";
+import { App, Editor, FileSystemAdapter, MarkdownView, moment, normalizePath, TFile, TFolder } from "obsidian";
+import { VaultTransferSettings } from "settings";
+import { showNotice } from "utils";
 
 /**
  * Simple function that remove a part of a path using the settings "removePath"
@@ -14,6 +14,31 @@ function removePartOfPath(settings: VaultTransferSettings, path: string): string
         path = path.replace(RegExp(part, "gi"), "");
     }
     return normalizePath(path);
+}
+
+function replaceWithDate(path: string, settings: VaultTransferSettings, date?: number | string) {
+    if (!date) return path;
+    const DATE_REGEX = /\{\{(.*?)\}\}/gi;
+    return path.replace(DATE_REGEX, (match: string, group: string) => {
+        return moment(date).format(group);
+    });
+}
+
+/** Regex-replace the path allowing for date variable */
+export function overrideOutputPath(path: string, settings: VaultTransferSettings, metadate?: number | string) {
+    const overridePath = settings.overridedPath;
+    let overriddenPath = path;
+    for (const override of overridePath) {
+        const isRegex = override.sourcePath.match(/^\/(.*)\/[gimuy]*$/);
+        const replacement = replaceWithDate(override.replacement, settings, metadate);
+        if (isRegex) {
+            const regex = new RegExp(isRegex[1], isRegex[2]);
+            if (regex.test(path)) {
+                overriddenPath = overriddenPath.replace(regex, override.replacement);
+            }
+        } overriddenPath = overriddenPath.replace(override.sourcePath, replacement);
+    }
+    return normalizePath(overriddenPath);
 }
 
 /**
@@ -29,16 +54,7 @@ export async function transferNote(editor: Editor | null, file: TFile | null, ap
 
         const outputVault = normalizePath(settings.outputVault);
         let outputFolder = normalizePath(settings.outputFolder);
-        const DATE_REGEX = /\{\{(.*?)\}\}/gi;
-        outputFolder = outputFolder.replace(DATE_REGEX, (match: string, group: string) => {
-            if (dataMetadata) return moment(dataMetadata).format(group); 
-            
-            const frontmatterDate = app.metadataCache.getFileCache(file)?.frontmatter?.date;
-            if (frontmatterDate) {
-                return moment(frontmatterDate).format(group);
-            }
-            return moment(file.stat.ctime).format(group);
-        });
+        outputFolder = replaceWithDate(outputFolder, settings, dataMetadata);
 
         // Get paths
         const fileSystemAdapter = app.vault.adapter as FileSystemAdapter;
@@ -52,6 +68,7 @@ export async function transferNote(editor: Editor | null, file: TFile | null, ap
             if (settings.recreateTree) {
                 outputPath = normalizePath(`${outputFolderPath}/${file.path}`);
                 outputPath = removePartOfPath(settings, outputPath);
+                outputPath = overrideOutputPath(outputPath, settings, dataMetadata);
             }
         } else {
             outputFolderPath = normalizePath(outputPath);
@@ -99,7 +116,7 @@ export async function transferNote(editor: Editor | null, file: TFile | null, ap
         }
     }
     catch (e) {
-        showNotice(`Error copying file`, e);
+        showNotice("Error copying file", e);
     }
 }
 
@@ -135,6 +152,28 @@ export function getFolderNote(folder: TFolder, app: App) {
     }
 }
 
+export function getMetadataDate(file: TFile | undefined | null, app: App, settings: VaultTransferSettings) {
+    if (!file) return undefined;
+    let metadataDate: undefined | number | string = undefined;
+    if (settings.dateVariable.type === "frontmatter" && settings.dateVariable.frontmatterKey) {
+        metadataDate = app.metadataCache.getFileCache(file)?.frontmatter?.[settings.dateVariable.frontmatterKey];
+        if (!metadataDate) {
+            if (settings.dateVariable.fallback === "creation") {
+                return metadataDate = file.stat.ctime;
+            } else if (settings.dateVariable.fallback === "modification") {
+                return metadataDate = file.stat.mtime;
+            }
+        }
+    } else if (settings.dateVariable.type === "creation") {
+        console.log("creation")
+        return metadataDate = file.stat.ctime;
+    } else if (settings.dateVariable.type === "modification") {
+        console.log("modification")
+        return metadataDate = file.stat.mtime;
+    }
+    return metadataDate;
+}
+
 /**
  * Transfer a folder and all its contents to another vault
  * @param folder {TFolder} The folder to transfer
@@ -144,7 +183,6 @@ export function getFolderNote(folder: TFolder, app: App) {
 export function transferFolder(folder: TFolder, app: App, settings: VaultTransferSettings, outputPath?: string) {
     const files = listToTransfer(folder, app);
     let folderNote = getFolderNote(folder, app) ?? null;
-    let metadataDate: undefined | number | string = undefined;
     if (!folderNote) {
         //search file inside the folder with the same name as the folder
         const folderInsideNote = app.vault.getAbstractFileByPath(`${folder.path}/${folder.name}.md`);
@@ -157,11 +195,8 @@ export function transferFolder(folder: TFolder, app: App, settings: VaultTransfe
                 folderNote = folderIndexNote as TFile;
             }
         }
-    } 
-    if (folderNote) {
-        const metaDate = app.metadataCache.getFileCache(folderNote)?.frontmatter?.date;
-        metadataDate = metaDate ? metaDate : folderNote.stat.ctime;
-    } 
+    }
+    const metadataDate = getMetadataDate(folderNote, app, settings);
     for (const file of files) {
         transferNote(null, file, app, settings, true, outputPath, metadataDate);
         //delete folder after all files are transferred
@@ -211,12 +246,7 @@ function createVaultFileLink(fileDisplayName: string | undefined, outputVault: s
  * @returns True if an error was shown, otherwise false.
  */
 function showErrorIfSettingsInvalid(settings: VaultTransferSettings): boolean {
-    let message: string | null = null;
-
-    // Check settings
-    if (settings.outputVault.trim().length == 0) {
-        message = "Target vault has not been set.";
-    }
+    const message: string | null = settings.outputVault.trim().length == 0 ? "Target vault has not been set." : null;
 
     // Show notice, if necessary
     if (message != null) {
