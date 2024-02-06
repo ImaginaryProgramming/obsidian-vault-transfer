@@ -19,7 +19,7 @@ export function addCommands(plugin: VaultTransferPlugin) {
     id: 'transfer-note-to-vault',
     name: 'Transfer current note to other vault',
     editorCallback: (editor: Editor, view: MarkdownView) => {
-      transferNote(editor, view.file, plugin.app, plugin.settings);
+      transferNote(editor, view?.file, plugin.app, plugin.settings);
     }
   });
 

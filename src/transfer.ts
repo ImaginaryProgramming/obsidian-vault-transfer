@@ -19,11 +19,11 @@ function removePartOfPath(settings: VaultTransferSettings, path: string): string
 /**
  * Copies the content of the current note to another vault, then replaces existing note contents with a link to the new file.
  */
-export async function transferNote(editor: Editor | null, file: TFile, app: App, settings: VaultTransferSettings, recursive?: boolean, outputPath?: string) {
+export async function transferNote(editor: Editor | null, file: TFile | null, app: App, settings: VaultTransferSettings, recursive?: boolean, outputPath?: string, dataMetadata?: string | number) {
     try {
         // Check settings
         const settingsErrorShown = showErrorIfSettingsInvalid(settings);
-        if (settingsErrorShown) {
+        if (settingsErrorShown || !file) {
             return;
         }
 
@@ -31,6 +31,8 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
         let outputFolder = normalizePath(settings.outputFolder);
         const DATE_REGEX = /\{\{(.*?)\}\}/gi;
         outputFolder = outputFolder.replace(DATE_REGEX, (match: string, group: string) => {
+            if (dataMetadata) return moment(dataMetadata).format(group); 
+            
             const frontmatterDate = app.metadataCache.getFileCache(file)?.frontmatter?.date;
             if (frontmatterDate) {
                 return moment(frontmatterDate).format(group);
@@ -59,7 +61,11 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
 
         // Check if directory exists to avoid error when copying
         const folderExists = fs.existsSync(outputFolderPath);
-        if (!folderExists) {
+        if (!folderExists && settings.automaticCreateOutputFolder) {
+            // create folder if it doesn't exist
+            fs.mkdirSync(normalizePath(outputFolderPath), { recursive: true });
+        }
+        else if (!folderExists) {
             showNotice(`Error: Directory does not exist at ${outputFolderPath}`);
             return;
         } else if (settings.recreateTree) {
@@ -102,18 +108,31 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
  * @param file {TFolder} The folder to get files from
  * @returns {TFile[]} A list of all TFiles files in the folder
  */
-function listToTransfer(file: TFolder) {
-    const files = file.children;
+function listToTransfer(folder: TFolder, app: App) {
+    const files = folder.children;
     const filesToTransfer: TFile[] = [];
     //recursive function to get all files in folder
     for (const file of files) {
         if (file instanceof TFile) {
             filesToTransfer.push(file as TFile);
         } else {
-            filesToTransfer.push(...listToTransfer(file as TFolder));
+            filesToTransfer.push(...listToTransfer(file as TFolder, app));
         }
     }
+    const folderParentNote = getFolderNote(folder, app);
+    if (folderParentNote instanceof TFile) {
+        //verify if not already in the list
+        filesToTransfer.push(folderParentNote);
+    }
     return filesToTransfer;
+}
+
+export function getFolderNote(folder: TFolder, app: App) {
+    const parentFolder = folder.parent?.path ?? "/";
+    const outsideFolderNote = app.vault.getAbstractFileByPath(normalizePath(`${parentFolder}/${folder.name}.md`));
+    if (outsideFolderNote && outsideFolderNote instanceof TFile) {
+        return outsideFolderNote;
+    }
 }
 
 /**
@@ -123,9 +142,28 @@ function listToTransfer(file: TFolder) {
  * @param settings {VaultTransferSettings} Plugin settings
  */
 export function transferFolder(folder: TFolder, app: App, settings: VaultTransferSettings, outputPath?: string) {
-    const files = listToTransfer(folder);
+    const files = listToTransfer(folder, app);
+    let folderNote = getFolderNote(folder, app) ?? null;
+    let metadataDate: undefined | number | string = undefined;
+    if (!folderNote) {
+        //search file inside the folder with the same name as the folder
+        const folderInsideNote = app.vault.getAbstractFileByPath(`${folder.path}/${folder.name}.md`);
+        if (folderInsideNote instanceof TFile) {
+            folderNote = folderInsideNote as TFile;
+        } else {
+            //maybe index ?
+            const folderIndexNote = app.vault.getAbstractFileByPath(`${folder.path}/index.md`);
+            if (folderIndexNote instanceof TFile) {
+                folderNote = folderIndexNote as TFile;
+            }
+        }
+    } 
+    if (folderNote) {
+        const metaDate = app.metadataCache.getFileCache(folderNote)?.frontmatter?.date;
+        metadataDate = metaDate ? metaDate : folderNote.stat.ctime;
+    } 
     for (const file of files) {
-        transferNote(null, file, app, settings, true, outputPath);
+        transferNote(null, file, app, settings, true, outputPath, metadataDate);
         //delete folder after all files are transferred
         if (settings.deleteOriginal && !settings.createLink) {
             app.vault.trash(folder, settings.moveToSystemTrash);
@@ -145,7 +183,7 @@ export function insertLinkToOtherVault(editor: Editor, view: MarkdownView, setti
     }
 
     // Get display name of current file
-    const fileDisplayName = view.file.basename;
+    const fileDisplayName = view.file?.basename;
 
     // Get output vault
     const outputVault = settings.outputVault;
@@ -158,12 +196,12 @@ export function insertLinkToOtherVault(editor: Editor, view: MarkdownView, setti
 /**
  * Creates a link to a file in another vault.
  */
-function createVaultFileLink(fileDisplayName: string, outputVault: string): string {
+function createVaultFileLink(fileDisplayName: string | undefined, outputVault: string): string {
     // Get content for link
     const vaultPathArray = normalizePath(outputVault).split("/");
     const vaultName = vaultPathArray[vaultPathArray.length - 1];
     const urlOtherVault = encodeURI(vaultName);
-    const urlFile = encodeURI(fileDisplayName);
+    const urlFile = encodeURI(fileDisplayName ?? "");
 
     return `[${fileDisplayName}](obsidian://vault/${urlOtherVault}/${urlFile})`;
 }
