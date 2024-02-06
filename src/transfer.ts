@@ -165,10 +165,8 @@ export function getMetadataDate(file: TFile | undefined | null, app: App, settin
             }
         }
     } else if (settings.dateVariable.type === "creation") {
-        console.log("creation")
         return metadataDate = file.stat.ctime;
     } else if (settings.dateVariable.type === "modification") {
-        console.log("modification")
         return metadataDate = file.stat.mtime;
     }
     return metadataDate;
