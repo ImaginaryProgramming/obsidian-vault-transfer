@@ -6,7 +6,7 @@ export default class VaultTransferPlugin extends Plugin {
 	settings: VaultTransferSettings;
 
 	async onload() {
-		console.log('loading obsidian-vault-transfer plugin');
+		console.log('loading vault-transfer plugin');
 		await this.loadSettings();
 
 		addCommands(this);
@@ -24,6 +24,6 @@ export default class VaultTransferPlugin extends Plugin {
 	}
 
 	onunload(): void {
-		console.log('unloading obsidian-vault-transfer plugin');
+		console.log('unloading vault-transfer plugin');
 	}
 }

@@ -1,6 +1,6 @@
 {
-	"name": "obsidian-vault-transfer",
-	"version": "1.0.0",
+	"name": "vault-transfer",
+	"version": "1.2.1",
 	"description": "Copies a note, and pastes it into another vault.",
 	"main": "main.js",
 	"scripts": {
