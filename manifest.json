@@ -1,7 +1,7 @@
 {
 	"id": "vault-transfer",
 	"name": "Vault Transfer",
-	"version": "1.2.1",
+	"version": "1.2.2",
 	"minAppVersion": "0.15.0",
 	"description": "Copies a note, and pastes it into another vault.",
 	"author": "ImaginaryProgramming",
