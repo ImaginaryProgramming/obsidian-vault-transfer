@@ -39,7 +39,7 @@ export class FolderSuggestModal extends FuzzySuggestModal<Folder> {
             if (this.toTransfer instanceof TFolder) {
                 transferFolder(this.toTransfer, this.app, this.settings, item.absPath)
             } else if (this.toTransfer instanceof TFile) {
-                transferNote(null, this.toTransfer as TFile, this.app, this.settings, undefined, item.absPath);
+                transferNote(null, this.toTransfer, this.app, this.settings, undefined, item.absPath);
             }
         }
     }
@@ -84,7 +84,7 @@ class CreateFolder extends Modal {
                         if (this.toTransfer instanceof TFolder) {
                             transferFolder(this.toTransfer, this.app, this.settings, this.folder.absPath)
                         } else if (this.toTransfer instanceof TFile) {
-                            transferNote(null, this.toTransfer as TFile, this.app, this.settings, undefined, this.folder.absPath);
+                            transferNote(null, this.toTransfer, this.app, this.settings, undefined, this.folder.absPath);
                         }
                         this.close();
                     })

@@ -4,6 +4,7 @@ import { insertLinkToOtherVault, transferFolder, transferNote } from 'transfer';
 import { FolderSuggestModal } from 'modals';
 import * as fs from 'fs';
 import * as path from "path"
+import { showNotice } from 'utils';
 
 export interface Folder {
   absPath: string
@@ -19,6 +20,11 @@ export function addCommands(plugin: VaultTransferPlugin) {
     id: 'transfer-note-to-vault',
     name: 'Transfer current note to other vault',
     editorCallback: (editor: Editor, view: MarkdownView) => {
+      if (view.file == null) {
+        showNotice("Error: view.file is null");
+        return;
+      }
+
       transferNote(editor, view.file, plugin.app, plugin.settings);
     }
   });
@@ -57,7 +63,7 @@ export function addMenuCommands(plugin: VaultTransferPlugin) {
               if (file instanceof TFolder) {
                 transferFolder(file, plugin.app, plugin.settings)
               } else if (file instanceof TFile) {
-                transferNote(null, file as TFile, plugin.app, plugin.settings);
+                transferNote(null, file, plugin.app, plugin.settings);
               }
             });
           submenu.addItem((subitem) => {
@@ -68,7 +74,7 @@ export function addMenuCommands(plugin: VaultTransferPlugin) {
                 //get all folder in the output vault
                 const folders: Folder[] = fs.readdirSync(plugin.settings.outputVault)
                   .filter((file) => fs.statSync(plugin.settings.outputVault + "/" + file).isDirectory())
-                  .filter((folder) => folder != ".obsidian")
+                  .filter((folder) => folder != plugin.app.vault.configDir)
                   .map((folder) => {
                     return {
                       absPath: plugin.settings.outputVault + "/" + folder,

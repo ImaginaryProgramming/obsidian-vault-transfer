@@ -31,7 +31,12 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
         const outputFolder = normalizePath(settings.outputFolder);
 
         // Get paths
-        const fileSystemAdapter = app.vault.adapter as FileSystemAdapter;
+        const fileSystemAdapter = app.vault.adapter;
+        if (!(fileSystemAdapter instanceof FileSystemAdapter)) {
+            showNotice("Error: fileSystemAdapter is not an instance of FileSystemAdapter");
+            return;
+        }
+
         const thisVaultPath = fileSystemAdapter.getBasePath();
         const fileName = file.name;
         const fileDisplayName = file.basename;
@@ -100,9 +105,9 @@ function listToTransfer(file: TFolder) {
     //recursive function to get all files in folder
     for (const file of files) {
         if (file instanceof TFile) {
-            filesToTransfer.push(file as TFile);
-        } else {
-            filesToTransfer.push(...listToTransfer(file as TFolder));
+            filesToTransfer.push(file);
+        } else if (file instanceof TFolder) {
+            filesToTransfer.push(...listToTransfer(file));
         }
     }
     return filesToTransfer;
@@ -133,6 +138,11 @@ export function insertLinkToOtherVault(editor: Editor, view: MarkdownView, setti
     // Check settings
     const settingsErrorShown = showErrorIfSettingsInvalid(settings);
     if (settingsErrorShown) {
+        return;
+    }
+
+    if (view.file == null) {
+        showNotice("Error: view.file is null");
         return;
     }
 
