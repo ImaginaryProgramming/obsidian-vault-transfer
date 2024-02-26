@@ -57,7 +57,12 @@ export async function transferNote(editor: Editor | null, file: TFile | null, ap
         outputFolder = replaceWithDate(outputFolder, settings, dataMetadata);
 
         // Get paths
-        const fileSystemAdapter = app.vault.adapter as FileSystemAdapter;
+        const fileSystemAdapter = app.vault.adapter;
+        if (!(fileSystemAdapter instanceof FileSystemAdapter)) {
+            showNotice("Error: fileSystemAdapter is not an instance of FileSystemAdapter");
+            return;
+        }
+
         const thisVaultPath = fileSystemAdapter.getBasePath();
         const fileName = file.name;
         const fileDisplayName = file.basename;
@@ -212,6 +217,11 @@ export function insertLinkToOtherVault(editor: Editor, view: MarkdownView, setti
     // Check settings
     const settingsErrorShown = showErrorIfSettingsInvalid(settings);
     if (settingsErrorShown) {
+        return;
+    }
+
+    if (view.file == null) {
+        showNotice("Error: view.file is null");
         return;
     }
 

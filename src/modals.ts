@@ -32,16 +32,15 @@ export class FolderSuggestModal extends FuzzySuggestModal<Folder> {
 		return item.relPath;
 	}
 
-	onChooseItem(item: Folder, evt: MouseEvent | KeyboardEvent): void {
-		if (item.absPath.length == 0) {
-			new CreateFolder(this.app, this.plugin, this.settings, item, this.toTransfer).open();
-		} else if (this.toTransfer instanceof TFolder) {
-			transferFolder(this.toTransfer, this.app, this.settings, item.absPath);
-		} else if (this.toTransfer instanceof TFile) {
-			const metadate = getMetadataDate(this.toTransfer, this.app, this.settings);
-			transferNote(null, this.toTransfer as TFile, this.app, this.settings, undefined, item.absPath, metadate);
-		}
-	}
+    onChooseItem(item: Folder, evt: MouseEvent | KeyboardEvent): void {
+        if (item.absPath.length == 0) {
+            new CreateFolder(this.app, this.plugin, this.settings, item, this.toTransfer).open();
+        } else if (this.toTransfer instanceof TFolder) {
+            transferFolder(this.toTransfer, this.app, this.settings, item.absPath)
+        } else if (this.toTransfer instanceof TFile) {
+            transferNote(null, this.toTransfer, this.app, this.settings, undefined, item.absPath);
+        }
+    }
 }
 
 class CreateFolder extends Modal {
@@ -60,33 +59,33 @@ class CreateFolder extends Modal {
 		this.toTransfer = toTransfer;
 	}
 
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.createEl("h2", { text: "Create new folder" });
-		contentEl.createEl("p", { text: "Please enter the name of the folder you want to create" });
-		new Setting(contentEl)
-			.setName("Folder name")
-			.setDesc("The folder will use the output vault as root")
-			.addText(text => text
-				.setPlaceholder("Folder name")
-				.setValue("")
-				.onChange(async (value) => {
-					this.folder.relPath = value;
-					this.folder.absPath = this.settings.outputVault + "/" + value;
-				})
-			)
-			.addButton((button) => {
-				button
-					.setButtonText("Create folder")
-					.onClick(async () => {
-						fs.mkdirSync(normalizePath(this.folder.absPath), { recursive: true });
-						if (this.toTransfer instanceof TFolder) {
-							transferFolder(this.toTransfer, this.app, this.settings, this.folder.absPath);
-						} else if (this.toTransfer instanceof TFile) {
-							transferNote(null, this.toTransfer as TFile, this.app, this.settings, undefined, this.folder.absPath);
-						}
-						this.close();
-					});
-			});
-	}
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.createEl('h2', { text: 'Create new folder' });
+        contentEl.createEl('p', { text: 'Please enter the name of the folder you want to create' });
+        new Setting(contentEl)
+            .setName('Folder name')
+            .setDesc("The folder will use the output vault as root")
+            .addText(text => text
+                .setPlaceholder('Folder name')
+                .setValue('')
+                .onChange(async (value) => {
+                    this.folder.relPath = value;
+                    this.folder.absPath = `${this.settings.outputVault}/${value}`;
+                })
+            )
+            .addButton((button) => {
+                button
+                    .setButtonText("Create folder")
+                    .onClick(async () => {
+                        fs.mkdirSync(normalizePath(this.folder.absPath), { recursive: true });
+                        if (this.toTransfer instanceof TFolder) {
+                            transferFolder(this.toTransfer, this.app, this.settings, this.folder.absPath)
+                        } else if (this.toTransfer instanceof TFile) {
+                            transferNote(null, this.toTransfer, this.app, this.settings, undefined, this.folder.absPath);
+                        }
+                        this.close();
+                    })
+            })
+    }
 }
