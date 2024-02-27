@@ -47,7 +47,8 @@ export class SettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.outputVault = normalizePath(value);
                     await this.plugin.saveSettings();
-                }));
+                })
+            );
 
         new Setting(containerEl)
             .setName('Output folder')
@@ -58,7 +59,8 @@ export class SettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.outputFolder = normalizePath(value);
                     await this.plugin.saveSettings();
-                }));
+                })
+            );
         new Setting(containerEl)
             .setName('Recreate folder structure')
             .setDesc('If set to true, the folder structure of the original file will be recreated in the new vault.')
@@ -68,8 +70,8 @@ export class SettingTab extends PluginSettingTab {
                     this.plugin.settings.recreateTree = value;
                     this.display();
                     await this.plugin.saveSettings();
-                }
-                ));
+                })
+            );
 
         if (this.plugin.settings.recreateTree) {
             new Setting(containerEl)
@@ -97,43 +99,45 @@ export class SettingTab extends PluginSettingTab {
                 );
         }
 
+        new Setting(containerEl).setName('Original file').setHeading();
+
         new Setting(containerEl)
-            .setName('Create link')
-            .setDesc('Add a link to the new file in the new vault to the current note. If set to false, the file will be left unchanged, but you can choose to delete the original with the setting below.')
+            .setName('Delete original')
+            .setDesc('If set to true, the original file will be deleted.')
             .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.createLink)
+                .setValue(this.plugin.settings.deleteOriginal)
                 .onChange(async (value) => {
-                    this.plugin.settings.createLink = value;
+                    this.plugin.settings.deleteOriginal = value;
                     await this.plugin.saveSettings();
                     this.display();
-                }
-                ));
-        if (!this.plugin.settings.createLink) {
-            new Setting(containerEl).setName('Deleting the original file').setHeading();
+                })
+            );
 
+        if (this.plugin.settings.deleteOriginal) {
             new Setting(containerEl)
-                .setName('Delete original')
-                .setDesc('If set to true, the original file will be deleted')
+                .setName('Move to system trash')
+                .setDesc('If set to true, the original file will be moved to the system trash. Otherwise, it will be moved to the vault trash.')
                 .addToggle(toggle => toggle
-                    .setValue(this.plugin.settings.deleteOriginal)
+                    .setValue(this.plugin.settings.moveToSystemTrash)
                     .onChange(async (value) => {
-                        this.plugin.settings.deleteOriginal = value;
+                        this.plugin.settings.moveToSystemTrash = value;
+                        await this.plugin.saveSettings();
+                    })
+                );
+        }
+
+        if (!this.plugin.settings.deleteOriginal) {
+            new Setting(containerEl)
+                .setName('Create link')
+                .setDesc('Add a link to the new file in the new vault to the current note. If set to false, the file will be left unchanged.')
+                .addToggle(toggle => toggle
+                    .setValue(this.plugin.settings.createLink)
+                    .onChange(async (value) => {
+                        this.plugin.settings.createLink = value;
                         await this.plugin.saveSettings();
                         this.display();
-                    }
-                    ));
-            if (this.plugin.settings.deleteOriginal) {
-                new Setting(containerEl)
-                    .setName('Move to system trash')
-                    .setDesc('If set to true, the original file will be moved to the system trash. Otherwise, it will be moved to the vault trash.')
-                    .addToggle(toggle => toggle
-                        .setValue(this.plugin.settings.moveToSystemTrash)
-                        .onChange(async (value) => {
-                            this.plugin.settings.moveToSystemTrash = value;
-                            await this.plugin.saveSettings();
-                        }
-                        ));
-            }
+                    })
+                );
         }
 
         new Setting(containerEl).setName('Other').setHeading();
@@ -146,7 +150,7 @@ export class SettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.overwrite = value;
                     await this.plugin.saveSettings();
-                }
-                ));
+                })
+            );
     }
 }
