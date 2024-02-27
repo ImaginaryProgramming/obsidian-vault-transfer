@@ -36,7 +36,7 @@ export class SettingTab extends PluginSettingTab {
 
         containerEl.empty();
 
-        containerEl.createEl('h2', { text: 'Path settings' });
+        new Setting(containerEl).setName('Path').setHeading();
 
         new Setting(containerEl)
             .setName('Output vault')
@@ -109,7 +109,8 @@ export class SettingTab extends PluginSettingTab {
                 }
                 ));
         if (!this.plugin.settings.createLink) {
-            containerEl.createEl('h3', { text: 'Deleting the original file settings' });
+            new Setting(containerEl).setName('Deleting the original file').setHeading();
+
             new Setting(containerEl)
                 .setName('Delete original')
                 .setDesc('If set to true, the original file will be deleted')
@@ -135,7 +136,8 @@ export class SettingTab extends PluginSettingTab {
             }
         }
 
-        containerEl.createEl('h3', { text: 'Other settings' });
+        new Setting(containerEl).setName('Other').setHeading();
+
         new Setting(containerEl)
             .setName('Overwrite')
             .setDesc('If set to false, the file will be skipped if it already exists in the other vault.')
