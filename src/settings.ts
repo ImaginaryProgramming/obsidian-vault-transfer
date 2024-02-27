@@ -39,7 +39,7 @@ export class SettingTab extends PluginSettingTab {
         containerEl.createEl('h2', { text: 'Path settings' });
 
         new Setting(containerEl)
-            .setName('Output Vault')
+            .setName('Output vault')
             .setDesc('The full file path to the other vault root folder.')
             .addText(text => text
                 .setPlaceholder('C:/MyVault')
@@ -50,7 +50,7 @@ export class SettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Output Folder')
+            .setName('Output folder')
             .setDesc('The folder within the vault the file should be copied to.')
             .addText(text => text
                 .setPlaceholder('Unsorted/Transfer')
@@ -60,7 +60,7 @@ export class SettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
         new Setting(containerEl)
-            .setName('Recreate Folder Structure')
+            .setName('Recreate folder structure')
             .setDesc('If set to true, the folder structure of the original file will be recreated in the new vault.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.recreateTree)
@@ -73,7 +73,7 @@ export class SettingTab extends PluginSettingTab {
 
         if (this.plugin.settings.recreateTree) {
             new Setting(containerEl)
-                .setName('Remove Folders From Path')
+                .setName('Remove folders from path')
                 .setDesc('Removes the specified folders from the output path, if present. Separate folders by using a comma or a new line. Names are case insensitive.')
                 .addTextArea(text =>
                     text
@@ -98,7 +98,7 @@ export class SettingTab extends PluginSettingTab {
         }
 
         new Setting(containerEl)
-            .setName('Create Link')
+            .setName('Create link')
             .setDesc('Add a link to the new file in the new vault to the current note. If set to false, the file will be left unchanged, but you can choose to delete the original with the setting below.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.createLink)
@@ -111,7 +111,7 @@ export class SettingTab extends PluginSettingTab {
         if (!this.plugin.settings.createLink) {
             containerEl.createEl('h3', { text: 'Deleting the original file settings' });
             new Setting(containerEl)
-                .setName('Delete Original')
+                .setName('Delete original')
                 .setDesc('If set to true, the original file will be deleted')
                 .addToggle(toggle => toggle
                     .setValue(this.plugin.settings.deleteOriginal)
@@ -123,7 +123,7 @@ export class SettingTab extends PluginSettingTab {
                     ));
             if (this.plugin.settings.deleteOriginal) {
                 new Setting(containerEl)
-                    .setName('Move to System Trash')
+                    .setName('Move to system trash')
                     .setDesc('If set to true, the original file will be moved to the system trash. Otherwise, it will be moved to the vault trash.')
                     .addToggle(toggle => toggle
                         .setValue(this.plugin.settings.moveToSystemTrash)
@@ -135,7 +135,7 @@ export class SettingTab extends PluginSettingTab {
             }
         }
 
-        containerEl.createEl('h3', { text: 'Other Settings' });
+        containerEl.createEl('h3', { text: 'Other settings' });
         new Setting(containerEl)
             .setName('Overwrite')
             .setDesc('If set to false, the file will be skipped if it already exists in the other vault.')
