@@ -16,7 +16,7 @@ function removePartOfPath(settings: VaultTransferSettings, path: string): string
     return normalizePath(path);
 }
 
-function replaceWithDate(path: string, settings: VaultTransferSettings, date?: number | string) {
+function replaceWithDate(path: string, date?: number | string) {
     if (!date) return path;
     const DATE_REGEX = /\{\{(.*?)\}\}/gi;
     return path.replace(DATE_REGEX, (match: string, group: string) => {
@@ -30,7 +30,7 @@ export function overrideOutputPath(path: string, settings: VaultTransferSettings
     let overriddenPath = path;
     for (const override of overridePath) {
         const isRegex = override.sourcePath.match(/^\/(.*)\/[gimuy]*$/);
-        const replacement = replaceWithDate(override.replacement, settings, metadate);
+        const replacement = replaceWithDate(override.replacement, metadate);
         if (isRegex) {
             const regex = new RegExp(isRegex[1], isRegex[2]);
             if (regex.test(path)) {
@@ -54,7 +54,7 @@ export async function transferNote(editor: Editor | null, file: TFile | null, ap
 
         const outputVault = normalizePath(settings.outputVault);
         let outputFolder = normalizePath(settings.outputFolder);
-        outputFolder = replaceWithDate(outputFolder, settings, dataMetadata);
+        outputFolder = replaceWithDate(outputFolder, dataMetadata);
 
         // Get paths
         const fileSystemAdapter = app.vault.adapter;
