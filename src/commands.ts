@@ -1,6 +1,6 @@
 import { Editor, MarkdownView, Menu, TFile, TFolder } from 'obsidian';
 import VaultTransferPlugin from 'main';
-import { insertLinkToOtherVault, transferFolder, transferNote } from 'transfer';
+import { getMetadataDate, insertLinkToOtherVault, transferFolder, transferNote } from 'transfer';
 import { FolderSuggestModal } from 'modals';
 import * as fs from 'fs';
 import * as path from "path"
@@ -24,8 +24,8 @@ export function addCommands(plugin: VaultTransferPlugin) {
         showNotice("Error: view.file is null");
         return;
       }
-
-      transferNote(editor, view.file, plugin.app, plugin.settings);
+      const metadataDate = getMetadataDate(view.file, plugin.app, plugin.settings);
+      transferNote(editor, view.file, plugin.app, plugin.settings, undefined, undefined, metadataDate);
     }
   });
 
@@ -63,7 +63,8 @@ export function addMenuCommands(plugin: VaultTransferPlugin) {
               if (file instanceof TFolder) {
                 transferFolder(file, plugin.app, plugin.settings)
               } else if (file instanceof TFile) {
-                transferNote(null, file, plugin.app, plugin.settings);
+                const metadataDate = getMetadataDate(file, plugin.app, plugin.settings);
+                transferNote(null, file, plugin.app, plugin.settings, undefined, undefined, metadataDate);
               }
             });
           submenu.addItem((subitem) => {
