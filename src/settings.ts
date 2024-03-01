@@ -267,19 +267,17 @@ export class SettingTab extends PluginSettingTab {
     }
 
 
-        new Setting(containerEl).setName('Other').setHeading();
-        
-        new Setting(containerEl)
-            .setName("Overwrite")
-            .setDesc("If set to false, the file will be skipped if it already exists in the other vault.")
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.overwrite)
-                .onChange(async (value) => {
-                    this.plugin.settings.overwrite = value;
-                    await this.plugin.saveSettings();
-                }
-                ));
-
-
-    }
+    new Setting(containerEl).setName('Other').setHeading();
+    
+    new Setting(containerEl)
+        .setName("Overwrite")
+        .setDesc("If set to false, the file will be skipped if it already exists in the other vault.")
+        .addToggle(toggle => toggle
+            .setValue(this.plugin.settings.overwrite)
+            .onChange(async (value) => {
+                this.plugin.settings.overwrite = value;
+                await this.plugin.saveSettings();
+            }
+            ));
+        }
 }
