@@ -17,7 +17,7 @@ function removePartOfPath(settings: VaultTransferSettings, path: string): string
 }
 
 function replaceWithDate(path: string, date?: number | string) {
-    if (!date) return path;
+    if (!date) date = new Date().toISOString();
     const DATE_REGEX = /\{\{(.*?)\}\}/gi;
     return path.replace(DATE_REGEX, (match: string, group: string) => {
         return moment(date).format(group);
