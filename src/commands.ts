@@ -51,7 +51,7 @@ export function addMenuCommands(plugin: VaultTransferPlugin) {
     plugin.app.workspace.on("file-menu", (menu, file) => {
       menu.addItem((item) => {
         item
-          .setTitle("Vault Transfer")
+          .setTitle("Vault transfer")
           .setIcon("arrow-right-circle")
         //@ts-ignore
         const submenu = item.setSubmenu() as Menu;
