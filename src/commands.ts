@@ -1,7 +1,7 @@
 import { Editor, MarkdownView, Menu, TFile, TFolder } from 'obsidian';
 import VaultTransferPlugin from 'main';
 import { insertLinkToOtherVault, transferFolder, transferNote } from 'transfer';
-import { FolderSuggestModal } from 'modals';
+import {FolderSuggestModal, VaultSelectionModal} from 'modals';
 import * as fs from 'fs';
 import * as path from "path"
 import { showNotice } from 'utils';
@@ -17,18 +17,25 @@ export function addCommands(plugin: VaultTransferPlugin) {
    * Then, replaces the contents of the current note with a link to the new file.
    */
   plugin.addCommand({
-    id: 'transfer-note-to-vault',
-    name: 'Transfer current note to other vault',
-    editorCallback: (editor: Editor, view: MarkdownView) => {
-      if (view.file == null) {
-        showNotice("Error: view.file is null");
-        return;
+      id: 'transfer-note-to-vault-list',
+      name: 'Transfer current note to other vault: From list',
+      editorCallback: (editor: Editor, view: MarkdownView) => {
+          new VaultSelectionModal(plugin.app, plugin, plugin.settings.rootDirectory).open();
       }
-
-      transferNote(editor, view.file, plugin.app, plugin.settings);
-    }
   });
 
+    plugin.addCommand({
+        id: 'transfer-note-to-vault',
+        name: 'Transfer current note to other vault: From settings',
+        editorCallback: (editor: Editor, view: MarkdownView) => {
+            if (view.file == null) {
+                showNotice("Error: view.file is null");
+                return;
+            }
+
+            transferNote(editor, view.file, plugin.app, plugin.settings);
+        }
+    });
   /**
    * Inserts a link to the current note in the other vault, without transferring.
    */
@@ -63,7 +70,7 @@ export function addMenuCommands(plugin: VaultTransferPlugin) {
               if (file instanceof TFolder) {
                 transferFolder(file, plugin.app, plugin.settings)
               } else if (file instanceof TFile) {
-                transferNote(null, file, plugin.app, plugin.settings);
+                await transferNote(null, file, plugin.app, plugin.settings);
               }
             });
           submenu.addItem((subitem) => {
@@ -98,8 +105,4 @@ export function addMenuCommands(plugin: VaultTransferPlugin) {
       });
     })
   );
-}
-
-export function addSubMenuCommands(plugin: VaultTransferPlugin) {
-
 }
