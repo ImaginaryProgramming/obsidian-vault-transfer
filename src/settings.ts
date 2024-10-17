@@ -17,6 +17,7 @@ export const DEFAULT_SETTINGS: VaultTransferSettings = {
     outputFolder: '',
     createLink: true,
     deleteOriginal: false,
+  	tagtoAssign:"",
     moveToSystemTrash: false,
     overwrite: false,
     recreateTree: false,
@@ -140,6 +141,18 @@ export class SettingTab extends PluginSettingTab {
                 );
         }
 
+		// Tag to assign to transferred note
+	    if (!this.plugin.settings.deleteOriginal) {
+	      new import_obsidian5.Setting(containerEl).setName("Tag to Assign").setDesc(
+	        "Add a tag to be assigned automatically in FrontMatter after transferring a note (without `#`)"
+	      ).addText(
+	        (tag) => tag.setPlaceholder("Transferred").setValue(this.plugin.settings.tagtoAssign).onChange(async (value) => {
+	          this.plugin.settings.tagtoAssign = value.replace(/ /g, ""); // Keep tag name without spaces at the end
+	          await this.plugin.saveSettings();
+	        })
+	      );
+	    }
+		
         new Setting(containerEl).setName('Other').setHeading();
 
         new Setting(containerEl)
