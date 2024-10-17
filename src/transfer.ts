@@ -84,7 +84,7 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
 	      const tagtoAssign = settings.tagtoAssign;
 	      app.fileManager.processFrontMatter(file, (fm: any) => {
 		      if (!fm.tags) {
-		        fm.tags = new Set(tagtoAssign);
+		        fm.tags = new Set([tagtoAssign]);
 		      } else {
 		        let curTags = [...fm.tags];
 				fm.tags = new Set([...curTags, tagtoAssign]);
