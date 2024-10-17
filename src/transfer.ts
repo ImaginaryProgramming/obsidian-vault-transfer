@@ -79,6 +79,18 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
         // Copy to new file in other vault
         fs.copyFileSync(normalizePath(`${thisVaultPath}/${file.path}`), outputPath);
 
+	    // If a tag to assign was specified in settings, assign it to current note
+	    if (!settings.deleteOriginal && settings.tagtoAssign != "") {
+	      const tagtoAssign = settings.tagtoAssign;
+	      app.fileManager.processFrontMatter(file, (fm: any) => {
+		      if (!fm.tags) {
+		        fm.tags = new Set(tagtoAssign);
+		      } else {
+		        let curTags = [...fm.tags];
+				fm.tags = new Set([...curTags, tagtoAssign]);
+		      }
+	      })
+	    };
         if (settings.createLink) {
             // Replace original file with link
             const link = createVaultFileLink(fileDisplayName, outputVault);
