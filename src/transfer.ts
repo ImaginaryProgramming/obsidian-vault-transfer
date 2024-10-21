@@ -74,23 +74,37 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
             }
         }
 
+	    // Check if the tag to assign already exists and remove it before copying 
+		// (during Overwrite when a note is transferred more than once)
+	    if (!settings.deleteOriginal && !settings.createLink && settings.tagtoAssign != "") {
+	      app.fileManager.processFrontMatter(file, (fm) => {
+	        let index = fm.tags.indexOf(settings.tagtoAssign);
+	        if (index > -1) {
+	          fm.tags.splice(index, 1);
+	        }
+	      });
+	      // Wait 100ms to make sure that file is updated before copy
+	      await sleep(100);
+	    }
+
         //get list of all attachments
         copyAllAttachments(file, app, outputPath, thisVaultPath);
         // Copy to new file in other vault
         fs.copyFileSync(normalizePath(`${thisVaultPath}/${file.path}`), outputPath);
 
 	    // If a tag to assign was specified in settings, assign it to current note
-	    if (!settings.deleteOriginal && settings.tagtoAssign != "") {
+	    if (!settings.deleteOriginal && !settings.createLink && settings.tagtoAssign != "") {
 	      const tagtoAssign = settings.tagtoAssign;
-	      app.fileManager.processFrontMatter(file, (fm: any) => {
-		      if (!fm.tags) {
-		        fm.tags = new Set([tagtoAssign]);
-		      } else {
-		        let curTags = [...fm.tags];
-				fm.tags = new Set([...curTags, tagtoAssign]);
-		      }
+	      app.fileManager.processFrontMatter(file, (fm) => {
+	      if (!fm.tags) {
+	        fm.tags = new Set([tagtoAssign]);
+	      } else {
+	        let curTags = [...fm.tags];
+			fm.tags = new Set([...curTags, tagtoAssign]);
+	      }
 	      })
 	    };
+
         if (settings.createLink) {
             // Replace original file with link
             const link = createVaultFileLink(fileDisplayName, outputVault);
