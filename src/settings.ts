@@ -6,6 +6,7 @@ export interface VaultTransferSettings {
     outputFolder: string;
     createLink: boolean;
     deleteOriginal: boolean; //only relevant if createLink is false
+  	tagtoAssign: string; //only relevant deleteOriginal and createLink are both false
     moveToSystemTrash: boolean; //only relevant if deleteOriginal is true
     overwrite: boolean; //if set to false => skip file if it already exists
     recreateTree: boolean; //if set to true => recreate the folder structure in the new vault
