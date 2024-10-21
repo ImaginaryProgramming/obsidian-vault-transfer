@@ -142,7 +142,7 @@ export class SettingTab extends PluginSettingTab {
         }
 
 		// Tag to assign to transferred note
-	    if (!this.plugin.settings.deleteOriginal) {
+	    if (!this.plugin.settings.deleteOriginal && !this.plugin.settings.createLink) {
 	      new import_obsidian5.Setting(containerEl).setName("Tag to Assign").setDesc(
 	        "Add a tag to be assigned automatically in FrontMatter after transferring a note (without `#`)"
 	      ).addText(
