@@ -225,22 +225,29 @@ function showErrorIfSettingsInvalid(settings: VaultTransferSettings): boolean {
  * @param thisVaultPath {string} The path of the current vault, where the attachments are located.
  */
 function copyAllAttachments(file: TFile, app: App, newVault: string, thisVaultPath: string) {
-    //Get all attachments of the file, aka embedded things (pdf, image...)
-    const attachments = app.metadataCache.getFileCache(file)?.embeds ?? [];
+    //Get all attachments of the file, embedded or linked only (pdf, image, md...)
+    const fileData: app.metadataCache.getFileCache(file);
+    const attachments = [...(fileData?.embeds || []), ...(fileData?.links || [])];
     for (const attachment of attachments) {
         //copy the attachment to the new vault
         const attachmentPath = app.metadataCache.getFirstLinkpathDest(attachment.link.replace(/#.*/, ""), file.path);
         if (attachmentPath) {
-            //recreate the path of the attachment in the new vault
-            const newAttachmentPath = normalizePath(`${newVault.replace(file.name, "")}/${attachmentPath.path}`);
-            const oldAttachmentPath = normalizePath(`${thisVaultPath}/${attachmentPath.path}`);
-            //check if the folder exists, if not create it
-            if (!fs.existsSync(newAttachmentPath.replace(attachmentPath.name, ""))) {
-                //recursively create the folder
-                fs.mkdirSync(newAttachmentPath.replace(attachmentPath.name, ""), { recursive: true });
+            // Obtain file extension, handle potential missing extension
+            const fileName = attachmentPath.path.split('/').pop() || '';
+            const fileExtension = fileName.split('.').pop();
+            // Skip copying MD files
+            if (fileExtension !== 'md') {
+                //recreate the path of the attachment in the new vault
+                const newAttachmentPath = normalizePath(`${newVault.replace(file.name, "")}/${attachmentPath.path}`);
+                const oldAttachmentPath = normalizePath(`${thisVaultPath}/${attachmentPath.path}`);
+                //check if the folder exists, if not create it
+                if (!fs.existsSync(newAttachmentPath.replace(attachmentPath.name, ""))) {
+                    //recursively create the folder
+                    fs.mkdirSync(newAttachmentPath.replace(attachmentPath.name, ""), { recursive: true });
+                }
+                //copy the attachment
+                fs.copyFileSync(oldAttachmentPath, newAttachmentPath);
             }
-            //copy the attachment
-            fs.copyFileSync(oldAttachmentPath, newAttachmentPath);
         }
     }
 }
