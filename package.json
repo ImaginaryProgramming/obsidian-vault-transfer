@@ -1,6 +1,6 @@
 {
 	"name": "vault-transfer",
-	"version": "1.2.3",
+	"version": "1.2.4",
 	"description": "Copies a note, and pastes it into another vault.",
 	"main": "main.js",
 	"scripts": {
