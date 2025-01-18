@@ -69,7 +69,7 @@ export class SettingTab extends PluginSettingTab {
 				.setPlaceholder('C:/AllMyVaults')
 				.setValue(this.plugin.settings.rootDirectory)
 				.onChange(async (value) => {
-					this.plugin.settings.rootDirectory = normalizePath(value);
+					this.plugin.settings.rootDirectory = unixNormalizePath(value);
 					await this.plugin.saveSettings();
 				})
 			);
@@ -102,7 +102,7 @@ export class SettingTab extends PluginSettingTab {
                                 if (trimmedPath == "") {
                                     continue;
                                 }
-                                cleanPaths.push(normalizePath(trimmedPath));
+                                cleanPaths.push(unixNormalizePath(trimmedPath));
                             }
 
                             this.plugin.settings.removePath = cleanPaths;
