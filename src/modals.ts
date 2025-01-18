@@ -1,9 +1,11 @@
-import { App, FuzzySuggestModal, Modal, Setting, TAbstractFile, TFile, TFolder, normalizePath } from 'obsidian';
+import { App, FuzzySuggestModal, Modal, Setting, TAbstractFile, TFile, TFolder, normalizePath, MarkdownView } from 'obsidian';
 import VaultTransferPlugin from 'main';
 import { VaultTransferSettings } from 'settings';
 import { Folder } from 'commands';
-import { transferFolder, transferNote } from 'transfer';
+import { transferFolder, transferNote, listPossibleVaults } from 'transfer';
 import * as fs from 'fs';
+import {showNotice} from "utils";
+import * as path from 'path';
 
 /** Fuzzy modal where you can search a specific folder with the Path */
 
@@ -91,3 +93,37 @@ class CreateFolder extends Modal {
             })
     }
 }
+
+export class VaultSelectionModal extends FuzzySuggestModal<string> {
+    rootDirectory: string;
+    app: App;
+    plugin: VaultTransferPlugin; // Ensure this plugin reference is passed in the constructor
+
+    constructor(app: App, plugin: VaultTransferPlugin, rootDirectory: string) {
+        super(app);
+        this.rootDirectory = rootDirectory;
+        this.plugin = plugin;
+    }
+
+    getItems(): string[] {
+        return listPossibleVaults(this.rootDirectory);
+    }
+
+    getItemText(item: string): string {
+        return item;
+    }
+
+    onChooseItem(item: string, evt: MouseEvent | KeyboardEvent): void {
+        console.log('Selected Vault:', item);
+        const tempSettings = { ...this.plugin.settings };
+        tempSettings.outputVault = path.join(this.rootDirectory, item);
+        const editor = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+        const file = this.app.workspace.getActiveFile();
+        if (editor && file) {
+            transferNote(editor, file, this.app, tempSettings);
+        } else {
+            showNotice("No active editor or file found.");
+        }
+    }
+}
+

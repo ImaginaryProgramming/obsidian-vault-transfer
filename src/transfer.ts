@@ -1,7 +1,8 @@
 import * as fs from 'fs';
-import { App, Editor, FileSystemAdapter, MarkdownView, TFile, TFolder, normalizePath } from 'obsidian';
-import { VaultTransferSettings } from 'settings';
+import { App, Editor, FileSystemAdapter, MarkdownView, TFile, TFolder} from 'obsidian';
+import {unixNormalizePath, VaultTransferSettings} from 'settings';
 import { showNotice } from 'utils';
+import * as path from 'path';
 
 /**
  * Simple function that remove a part of a path using the settings "removePath"
@@ -13,7 +14,17 @@ function removePartOfPath(settings: VaultTransferSettings, path: string): string
     for (const part of settings.removePath) {
         path = path.replace(RegExp(part, "gi"), "");
     }
-    return normalizePath(path);
+    return unixNormalizePath(path);
+}
+
+/**
+ * Lists all directories that could be vaults
+ * (excluding those starting with a '.') in the specified root directory
+ */
+export function listPossibleVaults(rootDirectory: string): string[] {
+	return fs.readdirSync(rootDirectory, { withFileTypes: true })
+		.filter(dirent => dirent.isDirectory() && !dirent.name.startsWith('.'))
+		.map(dirent => dirent.name);
 }
 
 /**
@@ -27,8 +38,8 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
             return;
         }
 
-        const outputVault = normalizePath(settings.outputVault);
-        const outputFolder = normalizePath(settings.outputFolder);
+        const outputVault = unixNormalizePath(settings.outputVault);
+        const outputFolder = unixNormalizePath(settings.outputFolder);
 
         // Get paths
         const fileSystemAdapter = app.vault.adapter;
@@ -42,15 +53,15 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
         const fileDisplayName = file.basename;
         let outputFolderPath: string;
         if (!outputPath) {
-            outputFolderPath = `${outputVault}/${outputFolder}`;
-            outputPath = normalizePath(`${outputFolderPath}/${fileName}`);
+            outputFolderPath = path.join(outputVault, outputFolder);
+            outputPath = unixNormalizePath(`${outputFolderPath}/${fileName}`);
             if (settings.recreateTree) {
-                outputPath = normalizePath(`${outputFolderPath}/${file.path}`);
+                outputPath = unixNormalizePath(`${outputFolderPath}/${file.path}`);
                 outputPath = removePartOfPath(settings, outputPath);
             }
         } else {
-            outputFolderPath = normalizePath(outputPath);
-            outputPath = normalizePath(`${outputPath}/${fileName}`);
+            outputFolderPath = unixNormalizePath(outputPath);
+            outputPath = unixNormalizePath(`${outputPath}/${fileName}`);
         }
         if (!recursive) showNotice(`Copying ${file.path} to ${outputPath}`);
 
@@ -61,7 +72,7 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
             return;
         } else if (settings.recreateTree) {
             // create folder if it doesn't exist
-            fs.mkdirSync(normalizePath(outputPath.replace(fileName, "")), { recursive: true });
+            fs.mkdirSync(unixNormalizePath(outputPath.replace(fileName, "")), { recursive: true });
         }
 
         if (fs.existsSync(outputPath)) {
@@ -83,7 +94,7 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
         //get list of all attachments
         copyAllAttachments(file, app, outputPath, thisVaultPath);
         // Copy to new file in other vault
-        fs.copyFileSync(normalizePath(`${thisVaultPath}/${file.path}`), outputPath);
+        fs.copyFileSync(unixNormalizePath(`${thisVaultPath}/${file.path}`), outputPath);
 
         if (settings.createLink) {
             // Replace original file with link
@@ -173,7 +184,7 @@ export function insertLinkToOtherVault(editor: Editor, view: MarkdownView, setti
  */
 function createVaultFileLink(fileDisplayName: string, outputVault: string): string {
     // Get content for link
-    const vaultPathArray = normalizePath(outputVault).split("/");
+    const vaultPathArray = unixNormalizePath(outputVault).split("/");
     const vaultName = vaultPathArray[vaultPathArray.length - 1];
     const urlOtherVault = encodeURI(vaultName);
     const urlFile = encodeURI(fileDisplayName);
@@ -223,8 +234,8 @@ function copyAllAttachments(file: TFile, app: App, newVault: string, thisVaultPa
             // Skip copying MD files
             if (fileExtension !== 'md') {
                 //recreate the path of the attachment in the new vault
-                const newAttachmentPath = normalizePath(`${newVault.replace(file.name, "")}/${attachmentPath.path}`);
-                const oldAttachmentPath = normalizePath(`${thisVaultPath}/${attachmentPath.path}`);
+                const newAttachmentPath = unixNormalizePath(`${newVault.replace(file.name, "")}/${attachmentPath.path}`);
+                const oldAttachmentPath = unixNormalizePath(`${thisVaultPath}/${attachmentPath.path}`);
                 //check if the folder exists, if not create it
                 if (!fs.existsSync(newAttachmentPath.replace(attachmentPath.name, ""))) {
                     //recursively create the folder
