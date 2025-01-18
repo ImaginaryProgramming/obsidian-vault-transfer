@@ -85,6 +85,12 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
             }
         }
 
+        // Check if the tag to assign already exists and remove it before copying 
+        // (during Overwrite when a note is transferred more than once)
+        if (!settings.deleteOriginal && settings.tagToAssign != "") {
+          await removeTagFromNote(app, file, settings.tagToAssign);
+        }
+
         //get list of all attachments
         copyAllAttachments(file, app, outputPath, thisVaultPath);
         // Copy to new file in other vault
@@ -99,6 +105,11 @@ export async function transferNote(editor: Editor | null, file: TFile, app: App,
             // Delete original file
             app.vault.trash(file, settings.moveToSystemTrash);
         }
+
+        // If a tag to assign was specified in settings, assign it to the original note
+        if (!settings.deleteOriginal && settings.tagToAssign != "") {
+            assignTagToNote(app, file, settings.tagToAssign);
+        };
     }
     catch (e) {
         showNotice(`Error copying file`, e);
@@ -210,22 +221,49 @@ function showErrorIfSettingsInvalid(settings: VaultTransferSettings): boolean {
  * @param thisVaultPath {string} The path of the current vault, where the attachments are located.
  */
 function copyAllAttachments(file: TFile, app: App, newVault: string, thisVaultPath: string) {
-    //Get all attachments of the file, aka embedded things (pdf, image...)
-    const attachments = app.metadataCache.getFileCache(file)?.embeds ?? [];
+    //Get all attachments of the file, embedded or linked only (pdf, image, md...)
+    const fileData = app.metadataCache.getFileCache(file);
+    const attachments = [...(fileData?.embeds || []), ...(fileData?.links || [])];
     for (const attachment of attachments) {
         //copy the attachment to the new vault
         const attachmentPath = app.metadataCache.getFirstLinkpathDest(attachment.link.replace(/#.*/, ""), file.path);
         if (attachmentPath) {
-            //recreate the path of the attachment in the new vault
-            const newAttachmentPath = unixNormalizePath(`${newVault.replace(file.name, "")}/${attachmentPath.path}`);
-            const oldAttachmentPath = unixNormalizePath(`${thisVaultPath}/${attachmentPath.path}`);
-            //check if the folder exists, if not create it
-            if (!fs.existsSync(newAttachmentPath.replace(attachmentPath.name, ""))) {
-                //recursively create the folder
-                fs.mkdirSync(newAttachmentPath.replace(attachmentPath.name, ""), { recursive: true });
+            // Obtain file extension, handle potential missing extension
+            const fileName = attachmentPath.path.split('/').pop() || '';
+            const fileExtension = fileName.split('.').pop();
+            // Skip copying MD files
+            if (fileExtension !== 'md') {
+                //recreate the path of the attachment in the new vault
+                const newAttachmentPath = unixNormalizePath(`${newVault.replace(file.name, "")}/${attachmentPath.path}`);
+                const oldAttachmentPath = unixNormalizePath(`${thisVaultPath}/${attachmentPath.path}`);
+                //check if the folder exists, if not create it
+                if (!fs.existsSync(newAttachmentPath.replace(attachmentPath.name, ""))) {
+                    //recursively create the folder
+                    fs.mkdirSync(newAttachmentPath.replace(attachmentPath.name, ""), { recursive: true });
+                }
+                //copy the attachment
+                fs.copyFileSync(oldAttachmentPath, newAttachmentPath);
             }
-            //copy the attachment
-            fs.copyFileSync(oldAttachmentPath, newAttachmentPath);
         }
     }
+}
+
+function assignTagToNote(app: App, file: TFile, tagToAssign: string) {
+    app.fileManager.processFrontMatter(file, (fm) => {
+      if (!fm.tags) {
+        fm.tags = new Set([tagToAssign]);
+      } else {
+        let currentTags = [...fm.tags];
+        fm.tags = new Set([...currentTags, tagToAssign]);
+      }
+    })
+}
+
+async function removeTagFromNote(app: App, file: TFile, tagToAssign: string) : Promise<void> {
+  await app.fileManager.processFrontMatter(file, (fm) => {
+	  let index = fm.tags?.indexOf(tagToAssign);
+	  if (index > -1) {
+		  fm.tags.splice(index, 1);
+	  }
+  });
 }
