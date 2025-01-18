@@ -6,7 +6,7 @@ export interface VaultTransferSettings {
     outputFolder: string;
     createLink: boolean;
     deleteOriginal: boolean; //only relevant if createLink is false
-  	tagtoAssign: string; //only relevant deleteOriginal and createLink are both false
+  	tagToAssign: string; //only relevant deleteOriginal is false
     moveToSystemTrash: boolean; //only relevant if deleteOriginal is true
     overwrite: boolean; //if set to false => skip file if it already exists
     recreateTree: boolean; //if set to true => recreate the folder structure in the new vault
@@ -18,7 +18,7 @@ export const DEFAULT_SETTINGS: VaultTransferSettings = {
     outputFolder: '',
     createLink: true,
     deleteOriginal: false,
-  	tagtoAssign:"",
+  	tagToAssign:"",
     moveToSystemTrash: false,
     overwrite: false,
     recreateTree: false,
@@ -142,13 +142,12 @@ export class SettingTab extends PluginSettingTab {
                 );
         }
 
-		// Tag to assign to transferred note
-	    if (!this.plugin.settings.deleteOriginal && !this.plugin.settings.createLink) {
-	      new import_obsidian5.Setting(containerEl).setName("Tag to Assign").setDesc(
-	        "Add a tag to be assigned automatically in FrontMatter after transferring a note (without `#`)"
+	    if (!this.plugin.settings.deleteOriginal) {
+	      new Setting(containerEl).setName("Tag to Assign").setDesc(
+	        "Add a tag to be assigned automatically to the original note after transfer (without `#`)"
 	      ).addText(
-	        (tag) => tag.setPlaceholder("Transferred").setValue(this.plugin.settings.tagtoAssign).onChange(async (value) => {
-	          this.plugin.settings.tagtoAssign = value.replace(/ /g, ""); // Keep tag name without spaces at the end
+	        (tag) => tag.setPlaceholder("Transferred").setValue(this.plugin.settings.tagToAssign).onChange(async (value) => {
+	          this.plugin.settings.tagToAssign = value.trim();
 	          await this.plugin.saveSettings();
 	        })
 	      );
