@@ -9,7 +9,7 @@ Transfers the contents of the selected note to another vault, then links to it f
     - If the file must overwrite an existing file in the target vault.
 2. Confirm that the target vault and folder exist.
 3. Open the note you want to transfer.
-4. Run `Vault Transfer: Transfer current note to other vault`.
+4. Run `Vault Transfer: Transfer current note to other vault: From settings`.
 
 ![vault-transfer](https://user-images.githubusercontent.com/92801558/212498180-34ed6ddf-9800-4904-b5a8-209be067e992.gif)
 
@@ -22,3 +22,13 @@ You can also use the file-menu to transfer the folder or note, and you can also 
 **Insert link to current note in other vault**
 
 Inserts a link to the current note in the other vault, without transferring the contents. Used when you know a file with the same name already exists in the other vault.
+
+**Transfer current note to other vault: From list**
+
+If the "Root directory of vaults" setting is configured, this command will allow you to pick any vault within that root to transfer to.
+
+## Current Limitations
+
+-   This plugin only works on desktop.
+-   A transfer can only be fired from a Markdown file. Other file types can be transferred alongside a markdown file when linked to, but cannot yet be transferred on their own.
+-   You need to input the full file path of the target vault in order to transfer, so you may run into problems if you are attempting to use this plugin from multiple devices.
