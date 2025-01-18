@@ -115,11 +115,12 @@ export class VaultSelectionModal extends FuzzySuggestModal<string> {
 
     onChooseItem(item: string, evt: MouseEvent | KeyboardEvent): void {
         console.log('Selected Vault:', item);
-        this.plugin.settings.outputVault = path.join(this.rootDirectory, item); // Adjust the outputVault setting
+        const tempSettings = { ...this.plugin.settings };
+        tempSettings.outputVault = path.join(this.rootDirectory, item);
         const editor = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
         const file = this.app.workspace.getActiveFile();
         if (editor && file) {
-            transferNote(editor, file, this.app, this.plugin.settings);
+            transferNote(editor, file, this.app, tempSettings);
         } else {
             showNotice("No active editor or file found.");
         }
