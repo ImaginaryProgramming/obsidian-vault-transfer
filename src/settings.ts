@@ -2,6 +2,7 @@ import VaultTransferPlugin from 'main';
 import { App, PluginSettingTab, Setting, normalizePath } from 'obsidian';
 
 export interface VaultTransferSettings {
+	rootDirectory: string;
     outputVault: string;
     outputFolder: string;
     createLink: boolean;
@@ -13,6 +14,7 @@ export interface VaultTransferSettings {
 }
 
 export const DEFAULT_SETTINGS: VaultTransferSettings = {
+	rootDirectory: '',
     outputVault: '',
     outputFolder: '',
     createLink: true,
@@ -22,6 +24,16 @@ export const DEFAULT_SETTINGS: VaultTransferSettings = {
     recreateTree: false,
     removePath: []
 }
+
+export function unixNormalizePath(path: string): string {
+    const normalized = normalizePath(path);
+    // Check if running on a Unix-like system and path had a leading slash
+    if (path.startsWith('/') && !normalized.startsWith('/')) {
+        return '/' + normalized;
+    }
+    return normalized;
+}
+
 
 export class SettingTab extends PluginSettingTab {
     plugin: VaultTransferPlugin;
@@ -45,22 +57,22 @@ export class SettingTab extends PluginSettingTab {
                 .setPlaceholder('C:/MyVault')
                 .setValue(this.plugin.settings.outputVault)
                 .onChange(async (value) => {
-                    this.plugin.settings.outputVault = normalizePath(value);
+                    this.plugin.settings.outputVault = unixNormalizePath(value);
                     await this.plugin.saveSettings();
                 })
             );
 
-        new Setting(containerEl)
-            .setName('Output folder')
-            .setDesc('The folder within the vault the file should be copied to.')
-            .addText(text => text
-                .setPlaceholder('Unsorted/Transfer')
-                .setValue(this.plugin.settings.outputFolder)
-                .onChange(async (value) => {
-                    this.plugin.settings.outputFolder = normalizePath(value);
-                    await this.plugin.saveSettings();
-                })
-            );
+		new Setting(containerEl)
+			.setName('Root directory of vaults')
+			.setDesc('The full file path to the directory containing all vaults.')
+			.addText(text => text
+				.setPlaceholder('C:/AllMyVaults')
+				.setValue(this.plugin.settings.rootDirectory)
+				.onChange(async (value) => {
+					this.plugin.settings.rootDirectory = unixNormalizePath(value);
+					await this.plugin.saveSettings();
+				})
+			);
         new Setting(containerEl)
             .setName('Recreate folder structure')
             .setDesc('If set to true, the folder structure of the original file will be recreated in the new vault.')
@@ -90,7 +102,7 @@ export class SettingTab extends PluginSettingTab {
                                 if (trimmedPath == "") {
                                     continue;
                                 }
-                                cleanPaths.push(normalizePath(trimmedPath));
+                                cleanPaths.push(unixNormalizePath(trimmedPath));
                             }
 
                             this.plugin.settings.removePath = cleanPaths;
